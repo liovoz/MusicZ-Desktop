@@ -66,8 +66,9 @@ if (app.isPackaged) {
         });
     });
 
+    // 监控探头：如果 GitHub 网络被墙或配置错误，直接把底层报错甩到屏幕上
     autoUpdater.on('error', (err) => {
-        console.error('自动更新出错: ', err);
+        dialog.showErrorBox('自动更新遇到阻碍', err == null ? "未知网络错误" : (err.stack || err).toString());
     });
 }
 

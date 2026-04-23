@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MusicZ 专属播放器 1.4.6</title>
+    <title>MusicZ 专属播放器 1.4.7</title>
     <style>
         /* ====== 桌面端原生沉浸式布局 ====== */
         body { 
@@ -10,7 +10,6 @@
             background-color: #f5f6f8; 
             margin: 0; 
             overflow: hidden; 
-            /* 【核心修复2】：强制开启全局抗锯齿，彻底解决鼠标移出软件时的文字重影/变粗问题！ */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -498,8 +497,6 @@
 
         function renderSearchEmptyUI() {
             listTitle.innerText = '全网探索广场';
-            
-            // 【核心修复】：彻底清空关联数据，防止隐藏滚动条时意外触发“正在加载”与“到底了”的叠加 Bug
             displayList = []; 
             pagination.tabSearch.hasMore = false; 
             
@@ -888,7 +885,6 @@
         async function loadMoreData() {
             if (isFetching || currentView === 'tabBlindBox') return; 
             
-            // 【核心修复1】：如果当前列表为空（通常是展示空状态的 UI 占位图时），绝对禁止触发下拉加载！防止多米诺叠加 Bug
             if (displayList.length === 0) return;
             if (pagination[currentView] && !pagination[currentView].hasMore) return;
 
@@ -924,7 +920,7 @@
             searchInput.value = ''; clearSearch.style.display = 'none'; searchInput.focus(); 
             if(currentView === 'tabSearch') { 
                 viewDataCache.tabSearch = []; 
-                displayList = []; // 同步清空数据
+                displayList = []; 
                 renderSearchEmptyUI(); 
             } 
         };

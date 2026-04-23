@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.4.6",
-  "description": "MusicZ - 终极探索版 (修复抗锯齿重影与滚动穿透Bug)",
+  "version": "1.4.7",
+  "description": "MusicZ - 终极探索版 (回归 GitHub)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
