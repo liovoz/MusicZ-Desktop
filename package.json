@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.4.7",
-  "description": "MusicZ - 终极探索版 (回归 GitHub)",
+  "version": "1.5.5",
+  "description": "MusicZ - 旗舰版 (Toast 提示位置视觉平衡优化)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
