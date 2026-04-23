@@ -1,29 +1,33 @@
 {
   "name": "musicz",
-  "version": "1.0.0",
-  "description": "MusicZ 盲盒音乐播放器",
+  "version": "1.1.0",
+  "description": "MusicZ - 极简专属桌面音乐盲盒",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
   },
+  "dependencies": {
+    "NeteaseCloudMusicApi": "^4.19.3",
+    "electron-updater": "^6.3.9"
+  },
   "build": {
     "appId": "com.musicz.app",
     "productName": "MusicZ",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "liovoz",
+        "repo": "MusicZ-Desktop"
+      }
+    ],
+    "asar": false,
     "win": {
       "target": "nsis"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    },
-    "asar": false
-  },
-  "devDependencies": {
-    "electron": "^41.2.2",
-    "electron-builder": "^26.8.1"
-  },
-  "dependencies": {
-    "NeteaseCloudMusicApi": "^4.31.0"
+    }
   }
 }

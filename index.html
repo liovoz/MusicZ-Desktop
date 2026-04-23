@@ -2,22 +2,22 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>❤蕾丝丝❤专属播放器 - MusicZ</title>
+    <title>MusicZ 专属播放器 12.0</title>
     <style>
         /* ====== 桌面端原生沉浸式布局 ====== */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f6f8; /* 高级桌面灰底色 */
+            background-color: #f5f6f8; 
             margin: 0;
-            overflow: hidden; /* 彻底封杀系统级滚动条 */
+            overflow: hidden; 
         }
         
         .player-container {
             width: 100vw;
             height: 100vh;
-            box-sizing: border-box; /* 核心防御：防止 padding 撑爆窗口 */
+            box-sizing: border-box; 
             background-color: transparent; 
-            border-radius: 0; /* 交由 Windows 系统管理圆角 */
+            border-radius: 0; 
             box-shadow: none;
             padding: 25px 30px;
             display: flex;
@@ -32,7 +32,6 @@
             overflow: hidden;
         }
 
-        /* 左侧面板 */
         .left-panel {
             width: 260px;
             display: flex;
@@ -107,7 +106,6 @@
             font-weight: bold;
         }
 
-        /* 右侧面板 (纯白悬浮层) */
         .right-panel {
             background-color: #ffffff;
             border-radius: 16px;
@@ -283,13 +281,12 @@
         .item-sub { font-size: 12px; color: #888; margin-top: 3px; }
         .playing-now .item-sub { color: rgba(255,255,255,0.8); }
 
-        /* 底部控制区 */
         .bottom-controls {
             display: flex;
             align-items: center;
             margin-top: 20px;
             padding: 10px 20px;
-            background-color: #ffffff; /* 纯白底座 */
+            background-color: #ffffff; 
             border-radius: 18px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.04);
             height: 60px;
@@ -318,7 +315,6 @@
             color: white; background-color: #d73a3a; transform: scale(1.08); box-shadow: 0 6px 20px rgba(236, 65, 65, 0.5);
         }
 
-        /* 进度条 */
         .progress-container { flex: 1; display: flex; align-items: center; gap: 15px; margin-right: 25px; }
         .time-text { font-size: 12px; color: #888; font-family: monospace; width: 40px; text-align: center; letter-spacing: 0.5px; }
         .progress-bar-wrapper { flex: 1; display: flex; align-items: center; height: 20px; }
@@ -342,7 +338,6 @@
         .playlist-toggle-btn:hover { background: #fcebeb; color: #ec4141; border-color: rgba(236,65,65,0.2); }
         #playlistCountBadge { font-size: 14px; font-weight: 600; line-height: 1; transform: translateY(1px); }
 
-        /* 悬浮列表 Popover */
         .playlist-panel {
             position: absolute; bottom: 95px; right: 25px; width: 340px; height: 400px;
             background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -365,7 +360,6 @@
         .panel-song-artist { color: #999; font-size: 12px; width: 90px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .playlist-panel-list li.active .panel-song-artist { color: #ec4141; opacity: 0.8;}
 
-        /* ====== 盲盒专属 UI ====== */
         .blind-box-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #555; animation: fadeIn 0.5s ease; }
         .blind-box-icon { font-size: 70px; margin-bottom: 15px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); }
         .blind-box-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
@@ -377,7 +371,6 @@
         }
         .blind-box-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 25px rgba(255, 117, 140, 0.6); }
         
-        /* ====== 12.0 新增：探索广场空状态 UI ====== */
         .empty-search-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.4s ease; }
         .empty-search-icon { color: #d0d0d0; margin-bottom: 20px; }
         .empty-search-title { font-size: 18px; font-weight: bold; color: #444; margin-bottom: 8px; }
@@ -387,12 +380,11 @@
         .icon-playing { animation: pulse-icon 2s infinite; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 毛玻璃弹窗 */
         .custom-alert-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
             display: none; justify-content: center; align-items: center; z-index: 9999;
-            opacity: 0; transition: opacity 0.3s ease; border-radius: 0; /* 配合无圆角设计 */
+            opacity: 0; transition: opacity 0.3s ease; border-radius: 0; 
         }
         .custom-alert-overlay.show { display: flex; opacity: 1; }
         .custom-alert-box {
@@ -499,7 +491,7 @@
     </div>
 
     <script>
-        // const API_BASE_URL = 'http://localhost:3000';
+        // 【核心修改】：固定 127.0.0.1 保证 Windows 系统下请求不报错
         const API_BASE_URL = 'http://127.0.0.1:3000';
         
         const ICON_PLAY_LARGE = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.43-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg>';
@@ -550,7 +542,6 @@
         const currentTimeText = document.getElementById('currentTimeText');
         const durationText = document.getElementById('durationText');
 
-        // 毛玻璃弹窗逻辑
         function showCustomAlert(message) {
             document.getElementById('customAlertMessage').innerText = message;
             const alertOverlay = document.getElementById('customAlert');
@@ -599,7 +590,6 @@
             return `${m}:${s}`;
         }
 
-        // 悬浮列表交互
         playlistToggleBtn.onclick = (e) => {
             e.stopPropagation(); 
             const isShowing = playlistPanel.classList.contains('show');
@@ -746,7 +736,6 @@
             currentView = tabId;
         }
 
-        // --- 核心修改：频道点击与空状态拦截 ---
         document.getElementById('tabNew').onclick = () => {
             switchTab('tabNew');
             if (viewDataCache.tabNew.length > 0) {
@@ -768,20 +757,16 @@
             renderBlindBoxUI();
         };
 
-        // 12.0 核心：探索广场常驻点击逻辑
         document.getElementById('tabSearch').onclick = () => {
             switchTab('tabSearch');
-            // 如果缓存里有数据，直接展示
             if (viewDataCache.tabSearch.length > 0) {
                 displayList = viewDataCache.tabSearch;
                 renderList(`"${lastSearchKeyword}" 的探索结果`, 'song');
             } else {
-                // 如果没有数据，渲染唯美的引导页
                 renderSearchEmptyUI();
             }
         };
 
-        // 12.0 核心：搜索引导页渲染函数
         function renderSearchEmptyUI() {
             listTitle.innerText = '全网探索广场';
             dataList.innerHTML = `
@@ -1057,16 +1042,13 @@
             } catch (e) { listTitle.innerText = '探索失败'; }
         }
 
-        // 12.0 核心：全局一键穿梭搜索逻辑
         document.getElementById('searchBtn').onclick = function() {
             const keyword = searchInput.value.trim();
-            // 如果没填词就点了搜索/回车，直接跳到探索广场的空界面
             if (!keyword) {
                 switchTab('tabSearch');
                 if (viewDataCache.tabSearch.length === 0) renderSearchEmptyUI();
                 return;
             }
-            // 填了词，无缝切换标签并拉取数据
             switchTab('tabSearch');
             fetchSearch(false, keyword);
         };
@@ -1101,9 +1083,8 @@
             searchInput.value = ''; 
             clearSearch.style.display = 'none'; 
             searchInput.focus(); 
-            // 体验优化：如果清空了搜索词，并且在探索标签下，显示空状态
             if(currentView === 'tabSearch') {
-                viewDataCache.tabSearch = []; // 清除旧缓存
+                viewDataCache.tabSearch = []; 
                 renderSearchEmptyUI();
             }
         };
@@ -1309,9 +1290,7 @@
             playPauseBtn.innerHTML = ICON_PAUSE_LARGE;
             playPauseBtn.classList.add('is-paused'); 
             
-            // 核心修复：如果是搜索空状态，不要去调用 renderList 把界面覆盖为空白
             if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {
-                // 什么都不做，保持空状态UI
             } else if (currentView !== 'tabBlindBox') {
                 renderList(listTitle.innerText, 'song');
             }
@@ -1323,7 +1302,6 @@
             playPauseBtn.classList.remove('is-paused'); 
             
             if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {
-                // 什么都不做
             } else if (currentView !== 'tabBlindBox') {
                 renderList(listTitle.innerText, 'song');
             }
