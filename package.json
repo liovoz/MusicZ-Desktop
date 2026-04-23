@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.4.3",
-  "description": "MusicZ - 终极探索版 (修复 DOM 重绘闪烁)",
+  "version": "1.4.6",
+  "description": "MusicZ - 终极探索版 (修复抗锯齿重影与滚动穿透Bug)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

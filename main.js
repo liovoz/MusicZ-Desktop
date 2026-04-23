@@ -4,7 +4,6 @@ const os = require('os');
 const path = require('path');
 const { autoUpdater } = require('electron-updater'); 
 
-// 【底层安全防御】：提前创建 anonymous_token
 try {
     const tokenPath = path.join(os.tmpdir(), 'anonymous_token');
     if (!fs.existsSync(tokenPath)) {

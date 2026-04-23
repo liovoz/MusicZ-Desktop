@@ -2,10 +2,18 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MusicZ</title>
+    <title>MusicZ 专属播放器 1.4.6</title>
     <style>
         /* ====== 桌面端原生沉浸式布局 ====== */
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f6f8; margin: 0; overflow: hidden; }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #f5f6f8; 
+            margin: 0; 
+            overflow: hidden; 
+            /* 【核心修复2】：强制开启全局抗锯齿，彻底解决鼠标移出软件时的文字重影/变粗问题！ */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         .player-container { width: 100vw; height: 100vh; box-sizing: border-box; padding: 25px 30px; display: flex; flex-direction: column; position: relative; }
         .main-content { display: flex; gap: 30px; flex: 1; overflow: hidden; }
 
@@ -71,7 +79,7 @@
         .playing-now .item-sub { color: rgba(255,255,255,0.8); }
 
         /* ====== 盲盒深度沉浸 UI ====== */
-        .blind-box-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; text-align: center; color: #555; animation: fadeIn 0.5s ease; box-sizing: border-box;}
+        .blind-box-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; text-align: center; color: #555; animation: fadeIn 0.5s ease forwards; box-sizing: border-box; transform: translateZ(0);}
         .blind-box-icon { font-size: 70px; margin-bottom: 15px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); transition: all 0.3s ease; }
         .slot-text { font-size: 26px; font-weight: 800; color: #ec4141; margin-bottom: 10px; letter-spacing: 2px; transition: transform 0.2s; }
         .blind-box-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
@@ -86,7 +94,8 @@
         @keyframes spin-dice { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
         .icon-spinning { animation: spin-dice 0.6s infinite linear; }
 
-        .empty-search-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.4s ease; }
+        /* 给空状态容器加上硬件加速，防止重影闪烁 */
+        .empty-search-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.4s ease forwards; transform: translateZ(0); }
         .empty-search-icon { color: #d0d0d0; margin-bottom: 20px; }
         .empty-search-title { font-size: 18px; font-weight: bold; color: #444; margin-bottom: 8px; }
         .empty-search-desc { font-size: 13px; color: #999; line-height: 1.6; }
@@ -489,6 +498,12 @@
 
         function renderSearchEmptyUI() {
             listTitle.innerText = '全网探索广场';
+            
+            // 【核心修复】：彻底清空关联数据，防止隐藏滚动条时意外触发“正在加载”与“到底了”的叠加 Bug
+            displayList = []; 
+            pagination.tabSearch.hasMore = false; 
+            
+            dataList.style.overflowY = 'hidden'; 
             dataList.innerHTML = `<div class="empty-search-container"><div class="empty-search-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div><div class="empty-search-title">在这里，发现你想听的任何声音</div><div class="empty-search-desc">在上方输入歌曲名、歌手名或专辑名<br>敲击回车键，立即开始你的音乐探索。</div></div>`;
         }
 
@@ -613,8 +628,11 @@
             }, 1500);
         }
 
-        // ====== 列表渲染 ======
         function renderList(title, type, isAppend = false, newData = []) {
+            if (currentView !== 'tabBlindBox') {
+                dataList.style.overflowY = 'auto'; 
+            }
+            
             const prevScrollTop = dataList.scrollTop;
             
             if (!isAppend) {
@@ -643,7 +661,7 @@
                     li.innerHTML = `
                         <img src="${item.cover}?param=50y50" class="item-cover">
                         <div class="item-info"><span class="item-name">${item.name}${vipTag}</span><span class="item-sub">${item.artist}</span></div>
-                        <span style="${iconColorStyle} display: flex; align-items: center;">${icon}</span>
+                        <span class="list-play-icon" style="${iconColorStyle} display: flex; align-items: center;">${icon}</span>
                     `;
                     if(isCurrentSong) li.classList.add('playing-now');
                     
@@ -676,21 +694,19 @@
             }
         }
 
-        // 【核心大礼包】：列表微操状态更新，不销毁 DOM
         function updateListPlayState() {
             if(currentView === 'tabBlindBox') return;
             const lis = dataList.querySelectorAll('li');
             lis.forEach((li, index) => {
                 if (li.id === 'loadingMoreIndicator' || li.id === 'noMoreIndicator') return;
                 
-                // 由于可能有懒加载，我们需要对应 displayList 的索引
                 const item = displayList[index];
                 if (!item || item.type !== 'song') return;
 
                 const isCurrentSong = playingList.length > 0 && playingList[currentPlayingIndex] && playingList[currentPlayingIndex].id === item.id;
                 const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
                 
-                const iconSpan = li.querySelector('span:last-child');
+                const iconSpan = li.querySelector('.list-play-icon'); 
                 const vipTag = li.querySelector('.vip-tag');
                 const subText = li.querySelector('.item-sub');
 
@@ -871,6 +887,11 @@
 
         async function loadMoreData() {
             if (isFetching || currentView === 'tabBlindBox') return; 
+            
+            // 【核心修复1】：如果当前列表为空（通常是展示空状态的 UI 占位图时），绝对禁止触发下拉加载！防止多米诺叠加 Bug
+            if (displayList.length === 0) return;
+            if (pagination[currentView] && !pagination[currentView].hasMore) return;
+
             isFetching = true;
             
             const loadingLi = document.createElement('li'); loadingLi.id = 'loadingMoreIndicator'; loadingLi.className = 'loading-more'; loadingLi.innerText = '正在加载更多...';
@@ -899,10 +920,16 @@
         }
 
         searchInput.addEventListener('input', () => { clearSearch.style.display = searchInput.value.length > 0 ? 'flex' : 'none'; });
-        clearSearch.onclick = () => { searchInput.value = ''; clearSearch.style.display = 'none'; searchInput.focus(); if(currentView === 'tabSearch') { viewDataCache.tabSearch = []; renderSearchEmptyUI(); } };
+        clearSearch.onclick = () => { 
+            searchInput.value = ''; clearSearch.style.display = 'none'; searchInput.focus(); 
+            if(currentView === 'tabSearch') { 
+                viewDataCache.tabSearch = []; 
+                displayList = []; // 同步清空数据
+                renderSearchEmptyUI(); 
+            } 
+        };
         searchInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('searchBtn').click(); });
 
-        // ====== 音乐控制与事件 ======
         async function playSong(index) {
             if (!playingList[index]) return;
             const song = playingList[index];
@@ -916,7 +943,6 @@
             document.getElementById('albumCover').src = song.cover + '?param=300y300';
             fetchLyric(song.id);
             
-            // 如果面板开着，做 DOM 微更新即可
             if(playlistPanel.classList.contains('show')) {
                 updatePlaylistPanelState();
                 scrollToCurrentSongInPanel();
@@ -1027,18 +1053,15 @@
             }
         });
 
-        // ====== 解决 DOM 重绘 Bug 的终极微操区 ======
         audioPlayer.addEventListener('play', () => {
             playPauseBtn.innerHTML = ICON_PAUSE_LARGE; playPauseBtn.classList.add('is-paused'); 
             
             if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {} 
             else if (currentView === 'tabBlindBox') { 
                 const icon = document.querySelector('.blind-box-icon');
-                // 仅给节点加类名，绝不重绘整个 DOM！
                 if (icon && icon.innerText === '🎧') icon.classList.add('icon-playing');
             } 
             else {
-                // 原来这里是 renderList 砸毁重建，现在换成微操更新状态
                 updateListPlayState();
             }
             updatePlaylistPanelState();
@@ -1057,7 +1080,6 @@
             }
             updatePlaylistPanelState();
         });
-        // ===========================================
 
         function renderPlaylistPanel() {
             playlistPanelList.innerHTML = '';
