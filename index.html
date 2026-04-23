@@ -2,349 +2,123 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MusicZ 专属播放器 12.0</title>
+    <title>MusicZ</title>
     <style>
         /* ====== 桌面端原生沉浸式布局 ====== */
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f6f8; 
-            margin: 0;
-            overflow: hidden; 
-        }
-        
-        .player-container {
-            width: 100vw;
-            height: 100vh;
-            box-sizing: border-box; 
-            background-color: transparent; 
-            border-radius: 0; 
-            box-shadow: none;
-            padding: 25px 30px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        
-        .main-content {
-            display: flex;
-            gap: 30px;
-            flex: 1;
-            overflow: hidden;
-        }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f6f8; margin: 0; overflow: hidden; }
+        .player-container { width: 100vw; height: 100vh; box-sizing: border-box; padding: 25px 30px; display: flex; flex-direction: column; position: relative; }
+        .main-content { display: flex; gap: 30px; flex: 1; overflow: hidden; }
 
-        .left-panel {
-            width: 260px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .cover-img {
-            width: 180px;
-            height: 180px;
-            border-radius: 15px;
-            object-fit: cover;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-        }
-        .current-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            text-align: center;
-        }
-        .current-artist {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 15px;
-        }
-        .mode-btn {
-            padding: 6px 15px;
-            border-radius: 15px;
-            border: 1px solid #ccc;
-            background-color: transparent;
-            color: #555;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.2s;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* ====== 左侧面板与登录 UI ====== */
+        .left-panel { width: 260px; display: flex; flex-direction: column; align-items: center; }
+        .user-profile { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 15px; background: rgba(255,255,255,0.6); border-radius: 12px; margin-bottom: 25px; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
+        .user-profile:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; background: #eee; object-fit: cover; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; flex: 1; }
+        .user-name-wrapper { display: flex; align-items: center; gap: 6px; width: 100%; }
+        .user-name { font-size: 13px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 11px; color: #999; margin-top: 2px; }
+
+        .cover-img { width: 180px; height: 180px; border-radius: 15px; object-fit: cover; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        .current-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+        .current-artist { font-size: 14px; color: #777; margin-bottom: 15px; }
+        .mode-btn { padding: 6px 15px; border-radius: 15px; border: 1px solid #ccc; background-color: transparent; color: #555; cursor: pointer; font-size: 12px; transition: 0.2s; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; }
         .mode-btn:hover { background-color: #e9eaec; }
 
-        .lyric-box {
-            flex: 1;
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
-        }
-        .lyric-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            transition: transform 0.4s ease-out;
-        }
-        .lyric-list li {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-            line-height: 1.6;
-            padding: 8px 10px;
-            transition: 0.3s;
-            word-break: break-word;
-        }
-        .lyric-list li.active {
-            color: #ec4141;
-            font-size: 16px;
-            font-weight: bold;
-        }
+        .lyric-box { flex: 1; width: 100%; overflow: hidden; position: relative; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%); }
+        .lyric-list { list-style: none; padding: 0; margin: 0; transition: transform 0.4s ease-out; }
+        .lyric-list li { text-align: center; color: #888; font-size: 14px; line-height: 1.6; padding: 8px 10px; transition: 0.3s; word-break: break-word; }
+        .lyric-list li.active { color: #ec4141; font-size: 16px; font-weight: bold; }
 
-        .right-panel {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 20px 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .search-input-wrapper input {
-            width: 100%;
-            padding: 12px;
-            padding-right: 35px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            outline: none;
-            background-color: #f9f9f9;
-            transition: 0.2s;
-        }
-        .search-input-wrapper input:focus {
-            background-color: #fff;
-            border-color: #ec4141;
-            box-shadow: 0 0 0 2px rgba(236,65,65,0.1);
-        }
-        #clearSearch {
-            position: absolute;
-            right: 10px;
-            cursor: pointer;
-            color: #ccc;
-            display: none;
-            font-size: 20px;
-            line-height: 1;
-            user-select: none;
-        }
+        /* ====== 右侧面板 ====== */
+        .right-panel { background-color: #ffffff; border-radius: 16px; padding: 20px 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-input-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
+        .search-input-wrapper input { width: 100%; padding: 12px; padding-right: 35px; border: 1px solid #ddd; border-radius: 10px; outline: none; background-color: #f9f9f9; transition: 0.2s; }
+        .search-input-wrapper input:focus { background-color: #fff; border-color: #ec4141; box-shadow: 0 0 0 2px rgba(236,65,65,0.1); }
+        #clearSearch { position: absolute; right: 10px; cursor: pointer; color: #ccc; display: none; font-size: 20px; line-height: 1; user-select: none; }
         #clearSearch:hover { color: #ec4141; }
-
-        .search-box button {
-            padding: 0 25px;
-            background-color: #ec4141;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+        .search-box button { padding: 0 25px; background-color: #ec4141; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .search-box button:hover { background-color: #d73a3a; }
 
-        .tab-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 5px;
-        }
-        .tab-btn {
-            background: none;
-            border: none;
-            font-size: 15px;
-            color: #666;
-            cursor: pointer;
-            padding: 5px 10px;
-            position: relative;
-            transition: 0.2s;
-        }
+        .tab-bar { display: flex; gap: 15px; margin-bottom: 10px; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; }
+        .tab-btn { background: none; border: none; font-size: 15px; color: #666; cursor: pointer; padding: 5px 10px; position: relative; transition: 0.2s; }
         .tab-btn:hover { color: #333; }
-        .tab-btn.active {
-            color: #ec4141;
-            font-weight: bold;
-        }
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -7px;
-            left: 10%;
-            width: 80%;
-            height: 3px;
-            background-color: #ec4141;
-            border-radius: 3px;
-        }
+        .tab-btn.active { color: #ec4141; font-weight: bold; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -7px; left: 10%; width: 80%; height: 3px; background-color: #ec4141; border-radius: 3px; }
 
-        .list-header {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .back-btn {
-            display: none;
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            padding: 2px 8px;
-            color: #555;
-            font-size: 12px;
-        }
+        .list-header { font-size: 13px; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .back-btn { display: none; background: none; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; padding: 2px 8px; color: #555; font-size: 12px; }
         .back-btn:hover { background: #eee; }
 
-        .data-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            flex: 1;
-            scrollbar-width: thin;
-            scrollbar-color: #ddd transparent;
-        }
+        /* ====== 通用列表样式 ====== */
+        .data-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: #ddd transparent; }
         .data-list::-webkit-scrollbar { width: 6px; }
         .data-list::-webkit-scrollbar-thumb { background-color: #ddd; border-radius: 3px; }
-        .data-list li {
-            padding: 10px;
-            border-bottom: 1px solid #f6f6f6;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            border-radius: 8px;
-            transition: background-color 0.1s;
-        }
+        .data-list li { padding: 10px; border-bottom: 1px solid #f6f6f6; cursor: pointer; display: flex; align-items: center; gap: 15px; border-radius: 8px; transition: background-color 0.1s; }
         .data-list li:hover { background-color: #fcebeb; }
         .data-list li.playing-now { background-color: #ec4141; color: white; border-bottom-color: transparent;}
         .data-list li.loading-more { justify-content: center; color: #888; pointer-events: none; border-bottom: none; }
         .data-list li.no-more { justify-content: center; color: #ccc; font-size: 12px; pointer-events: none; border-bottom: none; }
         
-        .item-cover {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            object-fit: cover;
-        }
-        .item-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .item-name { 
-            font-size: 14px; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            display: flex; 
-            align-items: center;
-        }
+        .item-cover { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
+        .item-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .item-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
         
-        .vip-tag {
-            font-size: 10px;
-            color: #ec4141;
-            border: 1px solid #ec4141;
-            border-radius: 3px;
-            padding: 0 3px;
-            margin-left: 6px;
-            transform: scale(0.9);
-            line-height: 1.2;
-        }
+        .vip-tag { font-size: 10px; color: #ec4141; border: 1px solid #ec4141; border-radius: 3px; padding: 0 4px; transform: scale(0.9); line-height: 1.3; display: inline-block; font-weight: bold; }
         .playing-now .vip-tag { color: white; border-color: white; }
         .item-sub { font-size: 12px; color: #888; margin-top: 3px; }
         .playing-now .item-sub { color: rgba(255,255,255,0.8); }
 
-        .bottom-controls {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #ffffff; 
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-            height: 60px;
-            box-sizing: border-box;
-        }
-        
-        .audio-player { display: none; }
+        /* ====== 盲盒深度沉浸 UI ====== */
+        .blind-box-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; text-align: center; color: #555; animation: fadeIn 0.5s ease; box-sizing: border-box;}
+        .blind-box-icon { font-size: 70px; margin-bottom: 15px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); transition: all 0.3s ease; }
+        .slot-text { font-size: 26px; font-weight: 800; color: #ec4141; margin-bottom: 10px; letter-spacing: 2px; transition: transform 0.2s; }
+        .blind-box-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .blind-box-desc { font-size: 13px; color: #888; margin-bottom: 35px; line-height: 1.6; }
+        .blind-box-btn { background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); color: white; border: none; padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 117, 140, 0.4); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .blind-box-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 25px rgba(255, 117, 140, 0.6); }
+        .blind-box-btn.disabled { background: #d0d0d0; box-shadow: none; cursor: not-allowed; transform: none; }
 
-        .playback-btns { display: flex; align-items: center; gap: 18px; margin-right: 25px; }
+        @keyframes pulse-icon { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 20px rgba(236, 65, 65, 0.6)); } 100% { transform: scale(1); opacity: 0.8; } }
+        .icon-playing { animation: pulse-icon 2s infinite ease-in-out; }
         
-        .ctrl-btn {
-            background: none; border: none; color: #444; cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; user-select: none;
-            width: 38px; height: 38px; border-radius: 50%; padding: 0;
-        }
+        @keyframes spin-dice { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
+        .icon-spinning { animation: spin-dice 0.6s infinite linear; }
+
+        .empty-search-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.4s ease; }
+        .empty-search-icon { color: #d0d0d0; margin-bottom: 20px; }
+        .empty-search-title { font-size: 18px; font-weight: bold; color: #444; margin-bottom: 8px; }
+        .empty-search-desc { font-size: 13px; color: #999; line-height: 1.6; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ====== 底部控制栏 ====== */
+        .bottom-controls { display: flex; align-items: center; margin-top: 20px; padding: 10px 20px; background-color: #ffffff; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); height: 60px; box-sizing: border-box; }
+        .audio-player { display: none; }
+        .playback-btns { display: flex; align-items: center; gap: 18px; margin-right: 25px; }
+        .ctrl-btn { background: none; border: none; color: #444; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; user-select: none; width: 38px; height: 38px; border-radius: 50%; padding: 0; }
         .ctrl-btn:hover { color: #ec4141; background-color: #f9f9f9; transform: scale(1.05); }
         .ctrl-btn:active { transform: scale(0.95); }
-        
-        .play-pause-btn {
-            color: white; background-color: #ec4141; box-shadow: 0 4px 15px rgba(236, 65, 65, 0.4);
-            width: 48px; height: 48px;
-        }
+        .play-pause-btn { color: white; background-color: #ec4141; box-shadow: 0 4px 15px rgba(236, 65, 65, 0.4); width: 48px; height: 48px; }
         .play-pause-btn svg { transform: translateX(-1.5px); transition: transform 0.2s ease; }
         .play-pause-btn.is-paused svg { transform: translateX(0); }
-        .play-pause-btn:hover {
-            color: white; background-color: #d73a3a; transform: scale(1.08); box-shadow: 0 6px 20px rgba(236, 65, 65, 0.5);
-        }
+        .play-pause-btn:hover { color: white; background-color: #d73a3a; transform: scale(1.08); box-shadow: 0 6px 20px rgba(236, 65, 65, 0.5); }
 
         .progress-container { flex: 1; display: flex; align-items: center; gap: 15px; margin-right: 25px; }
         .time-text { font-size: 12px; color: #888; font-family: monospace; width: 40px; text-align: center; letter-spacing: 0.5px; }
         .progress-bar-wrapper { flex: 1; display: flex; align-items: center; height: 20px; }
-        input[type=range] {
-            -webkit-appearance: none; width: 100%; height: 4px; 
-            background: linear-gradient(to right, #ec4141 var(--progress, 0%), #e0e0e0 var(--progress, 0%));
-            border-radius: 2px; cursor: pointer; outline: none;
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: linear-gradient(to right, #ec4141 var(--progress, 0%), #e0e0e0 var(--progress, 0%)); border-radius: 2px; cursor: pointer; outline: none; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: transparent; border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ec4141;
-            margin-top: -4px; box-shadow: 0 1px 5px rgba(0,0,0,0.3); transition: transform 0.2s;
-        }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ec4141; margin-top: -4px; box-shadow: 0 1px 5px rgba(0,0,0,0.3); transition: transform 0.2s; }
         input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
         
-        .playlist-toggle-btn {
-            background: #f9f9f9; border: 1px solid #eee; border-radius: 20px; padding: 0 16px; height: 34px;
-            cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; gap: 6px; 
-            transition: 0.2s; user-select: none; box-sizing: border-box;
-        }
+        .playlist-toggle-btn { background: #f9f9f9; border: 1px solid #eee; border-radius: 20px; padding: 0 16px; height: 34px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; user-select: none; box-sizing: border-box; }
         .playlist-toggle-btn:hover { background: #fcebeb; color: #ec4141; border-color: rgba(236,65,65,0.2); }
         #playlistCountBadge { font-size: 14px; font-weight: 600; line-height: 1; transform: translateY(1px); }
 
-        .playlist-panel {
-            position: absolute; bottom: 95px; right: 25px; width: 340px; height: 400px;
-            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; flex-direction: column;
-            z-index: 100; overflow: hidden; border: 1px solid rgba(255,255,255,0.6); opacity: 0;
-            transform: translateY(15px); transition: opacity 0.3s, transform 0.3s;
-        }
+        /* ====== 播放列表弹窗 ====== */
+        .playlist-panel { position: absolute; bottom: 95px; right: 25px; width: 340px; height: 400px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 100; overflow: hidden; border: 1px solid rgba(255,255,255,0.6); opacity: 0; transform: translateY(15px); transition: opacity 0.3s, transform 0.3s; }
         .playlist-panel.show { display: flex; opacity: 1; transform: translateY(0); }
         .playlist-panel-header { padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #333; font-weight: bold; }
         .playlist-panel-header button { background: none; border: none; color: #888; cursor: pointer; font-size: 13px; font-weight: normal; transition: 0.2s; }
@@ -360,76 +134,74 @@
         .panel-song-artist { color: #999; font-size: 12px; width: 90px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .playlist-panel-list li.active .panel-song-artist { color: #ec4141; opacity: 0.8;}
 
-        .blind-box-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #555; animation: fadeIn 0.5s ease; }
-        .blind-box-icon { font-size: 70px; margin-bottom: 15px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); }
-        .blind-box-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
-        .blind-box-desc { font-size: 14px; color: #888; margin-bottom: 40px; line-height: 1.6; }
-        .blind-box-btn {
-            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); color: white; border: none;
-            padding: 15px 40px; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.4); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        .blind-box-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 25px rgba(255, 117, 140, 0.6); }
-        
-        .empty-search-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.4s ease; }
-        .empty-search-icon { color: #d0d0d0; margin-bottom: 20px; }
-        .empty-search-title { font-size: 18px; font-weight: bold; color: #444; margin-bottom: 8px; }
-        .empty-search-desc { font-size: 13px; color: #999; line-height: 1.6; }
-
-        @keyframes pulse-icon { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 15px #ff7eb3); } 100% { transform: scale(1); opacity: 0.8; } }
-        .icon-playing { animation: pulse-icon 2s infinite; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .custom-alert-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            display: none; justify-content: center; align-items: center; z-index: 9999;
-            opacity: 0; transition: opacity 0.3s ease; border-radius: 0; 
-        }
+        /* ====== 自定义毛玻璃弹窗体系 ====== */
+        .custom-alert-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
         .custom-alert-overlay.show { display: flex; opacity: 1; }
-        .custom-alert-box {
-            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; padding: 30px 40px; text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 320px; transform: translateY(20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .custom-alert-box { background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; padding: 30px 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 320px; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .custom-alert-overlay.show .custom-alert-box { transform: translateY(0) scale(1); }
         .custom-alert-icon { font-size: 45px; margin-bottom: 15px; }
-        .custom-alert-message { font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.6; font-weight: bold; }
+        .custom-alert-message { font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.6; font-weight: bold; white-space: pre-line; }
         .custom-alert-btn { background: #ec4141; color: white; border: none; padding: 10px 35px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 65, 65, 0.3); transition: 0.2s; }
         .custom-alert-btn:hover { transform: scale(1.05); background: #d73a3a; box-shadow: 0 6px 20px rgba(236, 65, 65, 0.4); }
 
+        /* ====== 扫码登录弹窗 UI ====== */
+        .login-modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.2); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: none; justify-content: center; align-items: center; z-index: 10000; opacity: 0; transition: opacity 0.3s; }
+        .login-modal.show { display: flex; opacity: 1; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 300px; position: relative; transform: scale(0.95); transition: 0.3s; }
+        .login-modal.show .login-card { transform: scale(1); }
+        .qr-container { width: 180px; height: 180px; margin: 20px auto; background: #f9f9f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .qr-img { width: 100%; height: 100%; border-radius: 8px; }
+        .qr-status-mask { position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(255,255,255,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; color: #333; border-radius: 8px; }
+        .qr-status-mask.active { display: flex; }
+        .close-login { position: absolute; top: 15px; right: 15px; cursor: pointer; color: #ccc; font-size: 18px; }
+        .close-login:hover { color: #ec4141; }
     </style>
 </head>
 <body>
 
     <div class="player-container" id="playerContainer">
-        <div id="customAlert" class="custom-alert-overlay">
+        <div id="customAlert" class="custom-alert-overlay"><div class="custom-alert-box"><div class="custom-alert-icon">✨</div><div id="customAlertMessage" class="custom-alert-message">提示内容</div><button id="customAlertBtn" class="custom-alert-btn">我知道了</button></div></div>
+        
+        <div id="customConfirm" class="custom-alert-overlay">
             <div class="custom-alert-box">
-                <div class="custom-alert-icon">✨</div>
-                <div id="customAlertMessage" class="custom-alert-message">提示内容</div>
-                <button id="customAlertBtn" class="custom-alert-btn">我知道了</button>
+                <div class="custom-alert-icon">👋</div>
+                <div id="customConfirmMessage" class="custom-alert-message">确认要退出当前账号吗？</div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="confirmCancelBtn" class="custom-alert-btn" style="background: #f0f0f0; color: #555; box-shadow: none;">取消</button>
+                    <button id="confirmOkBtn" class="custom-alert-btn">确认退出</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loginModal" class="login-modal">
+            <div class="login-card">
+                <span id="closeLogin" class="close-login">✕</span>
+                <h3 style="margin-top:0; color:#333;">扫码登录</h3>
+                <p style="font-size:12px; color:#888;">请使用网易云音乐 APP 扫码</p>
+                <div class="qr-container">
+                    <img id="qrImg" class="qr-img" src=""><div id="qrStatusMask" class="qr-status-mask"><span id="qrStatusText">状态提示</span><button id="refreshQr" class="custom-alert-btn" style="margin-top:15px; padding: 6px 20px; font-size:12px; display:none;">重新获取</button></div>
+                </div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="left-panel">
+                <div class="user-profile" id="userProfile">
+                    <img id="userAvatar" class="user-avatar" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2RkZGRkZCI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==">
+                    <div class="user-info"><div class="user-name-wrapper"><span id="userName" class="user-name">点击登录账号</span><span id="userVipTag" class="vip-tag" style="display:none;">VIP</span></div><span id="userStatus" class="user-status">解锁私人无限电台</span></div>
+                </div>
                 <img id="albumCover" src="https://s1.music.126.net/style/web2/img/default/default_album.jpg" class="cover-img">
                 <div id="currentSongName" class="current-title">MusicZ</div>
                 <div id="currentArtist" class="current-artist">听你想听</div>
                 <button id="modeBtn" class="mode-btn">🔁 列表循环</button>
-                <div class="lyric-box">
-                    <ul class="lyric-list" id="lyricList"><li>欢迎使用MusicZ</li></ul>
-                </div>
+                <div class="lyric-box"><ul class="lyric-list" id="lyricList"><li>欢迎使用MusicZ</li></ul></div>
             </div>
 
             <div class="right-panel">
                 <div class="search-box">
                     <div class="search-input-wrapper">
                         <input type="text" id="searchInput" placeholder="搜索歌曲、歌手、专辑...">
-                        <span id="clearSearch" style="padding:4px; display:flex;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </span>
+                        <span id="clearSearch" style="padding:4px; display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>
                     </div>
                     <button id="searchBtn">搜索</button>
                 </div>
@@ -441,7 +213,7 @@
                     <button class="tab-btn" id="tabSearch">🔍 探索广场</button>
                 </div>
 
-                <div class="list-header">
+                <div class="list-header" id="listHeaderContainer">
                     <span id="listTitle">今日最热新歌</span>
                     <button class="back-btn" id="backBtn">🔙 返回歌单</button>
                 </div>
@@ -452,27 +224,16 @@
         
         <div class="bottom-controls">
             <audio class="audio-player" id="audioPlayer" autoplay></audio>
-            
             <div class="playback-btns">
-                <button id="prevBtn" class="ctrl-btn" title="上一首">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                </button>
-                <button id="playPauseBtn" class="ctrl-btn play-pause-btn" title="播放/暂停">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.43-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg>
-                </button>
-                <button id="nextBtn" class="ctrl-btn" title="下一首">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
+                <button id="prevBtn" class="ctrl-btn" title="上一首"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                <button id="playPauseBtn" class="ctrl-btn play-pause-btn" title="播放/暂停"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.43-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg></button>
+                <button id="nextBtn" class="ctrl-btn" title="下一首"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
             </div>
-            
             <div class="progress-container">
                 <span class="time-text" id="currentTimeText">00:00</span>
-                <div class="progress-bar-wrapper">
-                    <input type="range" id="progressBar" min="0" value="0" step="0.1">
-                </div>
+                <div class="progress-bar-wrapper"><input type="range" id="progressBar" min="0" value="0" step="0.1"></div>
                 <span class="time-text" id="durationText">00:00</span>
             </div>
-            
             <button id="playlistToggleBtn" class="playlist-toggle-btn" title="当前播放列表">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h18c0.55 0 1-0.45 1-1s-0.45-1-1-1H3c-0.55 0-1 0.45-1 1S2.45 13 3 13zm0 7h18c0.55 0 1-0.45 1-1s-0.45-1-1-1H3c-0.55 0-1 0.45-1 1S2.45 20 3 20zM3 6c0 0.55 0.45 1 1 1h18c0.55 0 1-0.45 1-1s-0.45-1-1-1H3C2.45 5 2 5.45 2 6z"/></svg>
                 <span id="playlistCountBadge">0</span>
@@ -480,24 +241,27 @@
         </div>
 
         <div id="playlistPanel" class="playlist-panel">
-            <div class="playlist-panel-header">
-                <span>当前播放 (<span id="panelHeaderCount">0</span>)</span>
-                <button id="clearPlaylistBtn">🗑️ 清空</button>
-            </div>
-            <ul class="playlist-panel-list" id="playlistPanelList">
-                <li style="justify-content:center;color:#888;">队列为空</li>
-            </ul>
+            <div class="playlist-panel-header"><span>当前播放 (<span id="panelHeaderCount">0</span>)</span><button id="clearPlaylistBtn">🗑️ 清空</button></div>
+            <ul class="playlist-panel-list" id="playlistPanelList"><li style="justify-content:center;color:#888;">队列为空</li></ul>
         </div>
     </div>
 
     <script>
-        // 【核心修改】：固定 127.0.0.1 保证 Windows 系统下请求不报错
         const API_BASE_URL = 'http://127.0.0.1:3000';
         
         const ICON_PLAY_LARGE = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.43-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg>';
         const ICON_PAUSE_LARGE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
         const ICON_PLAY_SMALL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
         const ICON_PAUSE_SMALL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+        function getLocalCookie() { return localStorage.getItem('ncm_cookie') || ''; }
+        function getPlayHistory() { return JSON.parse(localStorage.getItem('mz_history') || '[]'); }
+        function addPlayHistory(id) {
+            let hist = getPlayHistory();
+            if (!hist.includes(id)) hist.push(id);
+            if (hist.length > 500) hist.shift(); 
+            localStorage.setItem('mz_history', JSON.stringify(hist));
+        }
 
         let displayList = []; 
         let playingList = []; 
@@ -509,16 +273,17 @@
         let isFetching = false;       
         let lastSearchKeyword = '';
         
-        let isBlindBoxMode = false;
-        let blindBoxSourcePool = [];
+        let privateReservoir = [];
+        let isFetchingReservoir = false;
 
-        const viewDataCache = { tabNew: [], tabPlaylist: [], tabSearch: [], playlistDetail: [] };
-        const pagination = { 
-            tabNew: { offset: 0, hasMore: true }, 
-            tabPlaylist: { offset: 0, hasMore: true }, 
-            tabSearch: { offset: 0, hasMore: true }, 
-            playlistDetail: { offset: 0, hasMore: true }
-        };
+        let isBlindBoxMode = false;
+        let currentBlindBoxTag = '';
+        let cdRemaining = 0;
+        let cdTimer = null;
+        let isSlotting = false;
+
+        const viewDataCache = { tabNew: [], tabPlaylist: [], tabSearch: [], playlistDetail: [], tabBlindBox: [] };
+        const pagination = { tabNew: { offset: 0, hasMore: true }, tabPlaylist: { offset: 0, hasMore: true }, tabSearch: { offset: 0, hasMore: true }, playlistDetail: { offset: 0, hasMore: true }};
 
         const dataList = document.getElementById('dataList');
         const listTitle = document.getElementById('listTitle');
@@ -542,54 +307,7 @@
         const currentTimeText = document.getElementById('currentTimeText');
         const durationText = document.getElementById('durationText');
 
-        function showCustomAlert(message) {
-            document.getElementById('customAlertMessage').innerText = message;
-            const alertOverlay = document.getElementById('customAlert');
-            alertOverlay.style.display = 'flex';
-            alertOverlay.offsetHeight; 
-            alertOverlay.classList.add('show');
-        }
-
-        function hideCustomAlert() {
-            const alertOverlay = document.getElementById('customAlert');
-            alertOverlay.classList.remove('show');
-            setTimeout(() => {
-                if(!alertOverlay.classList.contains('show')) alertOverlay.style.display = 'none';
-            }, 300);
-        }
-        document.getElementById('customAlertBtn').onclick = hideCustomAlert;
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function formatSongs(rawList, source) {
-            return rawList.map(item => {
-                let song = { id: item.id, name: item.name, type: 'song' };
-                if (source === 'cloudsearch' || source === 'playlistDetail') {
-                    song.artist = item.ar ? item.ar[0].name : '未知';
-                    song.cover = item.al ? item.al.picUrl : '';
-                    song.fee = item.fee || 0; 
-                } else if (source === 'newsong') {
-                    song.artist = item.song.artists[0].name;
-                    song.cover = item.picUrl;
-                    song.fee = (item.song && item.song.fee !== undefined) ? item.song.fee : 0; 
-                }
-                return song;
-            });
-        }
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return '00:00';
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-
+        // ====== 播放列表组件控制 ======
         playlistToggleBtn.onclick = (e) => {
             e.stopPropagation(); 
             const isShowing = playlistPanel.classList.contains('show');
@@ -605,7 +323,7 @@
 
         document.body.addEventListener('click', (e) => {
             if (playlistPanel.classList.contains('show')) {
-                if (!playlistPanel.contains(e.target) && e.target !== playlistToggleBtn) {
+                if (!playlistPanel.contains(e.target) && !playlistToggleBtn.contains(e.target)) {
                     closePlaylistPanel();
                 }
             }
@@ -616,140 +334,147 @@
             setTimeout(() => { if(!playlistPanel.classList.contains('show')) playlistPanel.style.display = 'none'; }, 300); 
         }
 
-        clearPlaylistBtn.onclick = () => {
-            playingList = [];
-            currentPlayingIndex = -1;
-            isBlindBoxMode = false; 
-            
-            audioPlayer.pause();
-            audioPlayer.src = ''; 
-            playPauseBtn.innerHTML = ICON_PLAY_LARGE;
-            playPauseBtn.classList.remove('is-paused');
-            
-            document.getElementById('currentSongName').innerText = 'MusicZ';
-            document.getElementById('currentArtist').innerText = '听你想听';
-            document.getElementById('albumCover').src = 'https://s1.music.126.net/style/web2/img/default/default_album.jpg';
-            document.getElementById('lyricList').innerHTML = '<li>欢迎使用MusicZ</li>';
-            
-            parsedLyrics = [];
-            document.getElementById('lyricList').style.transform = `translateY(0px)`;
-            
-            progressBar.value = 0;
-            updateProgressUI(); 
-            currentTimeText.innerText = '00:00';
-            durationText.innerText = '00:00';
-
-            renderPlaylistPanel(); 
-            
-            if(currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {
-                renderSearchEmptyUI();
-            } else if (currentView !== 'tabBlindBox') {
-                renderList(listTitle.innerText, 'song'); 
-            } else {
-                renderBlindBoxUI(); 
-            }
-        };
-
-        function renderPlaylistPanel() {
-            playlistPanelList.innerHTML = '';
-
+        function updatePlaylistBadge() {
             if (isBlindBoxMode) {
                 playlistCountBadge.innerText = '∞';
-                panelHeaderCount.innerText = '∞';
-                
-                if (currentPlayingIndex !== -1 && playingList[currentPlayingIndex]) {
-                    const song = playingList[currentPlayingIndex];
-                    const isAudioPlaying = !audioPlayer.paused;
-                    const prefixIcon = isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL;
-                    const li = document.createElement('li');
-                    li.classList.add('active');
-                    li.innerHTML = `
-                        <span class="panel-song-name">${prefixIcon}${song.name}</span>
-                        <span class="panel-song-artist">${song.artist}</span>
-                    `;
-                    li.onclick = () => {
-                        if (audioPlayer.paused) audioPlayer.play();
-                        else audioPlayer.pause();
-                    };
-                    playlistPanelList.appendChild(li);
+            } else {
+                playlistCountBadge.innerText = playingList.length;
+            }
+        }
+
+        // ====== 扫码登录与系统弹窗 ======
+        function showCustomConfirm(message, onConfirm) {
+            document.getElementById('customConfirmMessage').innerText = message;
+            const confirmOverlay = document.getElementById('customConfirm');
+            confirmOverlay.style.display = 'flex'; confirmOverlay.offsetHeight; confirmOverlay.classList.add('show');
+            document.getElementById('confirmOkBtn').onclick = () => { hideCustomConfirm(); onConfirm(); };
+            document.getElementById('confirmCancelBtn').onclick = hideCustomConfirm;
+        }
+
+        function hideCustomConfirm() {
+            const confirmOverlay = document.getElementById('customConfirm');
+            confirmOverlay.classList.remove('show');
+            setTimeout(() => { if(!confirmOverlay.classList.contains('show')) confirmOverlay.style.display = 'none'; }, 300);
+        }
+
+        let qrCheckTimer = null;
+        document.getElementById('userProfile').onclick = () => {
+            if (getLocalCookie()) {
+                showCustomConfirm('确认要退出当前账号吗？\n退出后将无法获取私人定制推荐。', () => { localStorage.removeItem('ncm_cookie'); location.reload(); });
+            } else { openLoginModal(); }
+        };
+
+        async function openLoginModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+            setTimeout(()=> document.getElementById('loginModal').classList.add('show'), 10);
+            generateQrCode();
+        }
+
+        document.getElementById('closeLogin').onclick = () => {
+            document.getElementById('loginModal').classList.remove('show');
+            setTimeout(()=> document.getElementById('loginModal').style.display = 'none', 300);
+            clearInterval(qrCheckTimer);
+        };
+        document.getElementById('refreshQr').onclick = generateQrCode;
+
+        async function generateQrCode() {
+            document.getElementById('qrStatusMask').classList.remove('active'); document.getElementById('refreshQr').style.display = 'none';
+            try {
+                const resKey = await fetch(`${API_BASE_URL}/login/qr/key?t=${Date.now()}`);
+                const dataKey = await resKey.json();
+                const unikey = dataKey.data.unikey;
+                const resImg = await fetch(`${API_BASE_URL}/login/qr/create?key=${unikey}&qrimg=true&t=${Date.now()}`);
+                const dataImg = await resImg.json();
+                document.getElementById('qrImg').src = dataImg.data.qrimg;
+                startCheckingQrStatus(unikey);
+            } catch (e) { showCustomAlert('网络异常，获取二维码失败'); }
+        }
+
+        function startCheckingQrStatus(key) {
+            clearInterval(qrCheckTimer);
+            qrCheckTimer = setInterval(async () => {
+                const res = await fetch(`${API_BASE_URL}/login/qr/check?key=${key}&t=${Date.now()}`);
+                const data = await res.json();
+                const mask = document.getElementById('qrStatusMask'); const stText = document.getElementById('qrStatusText');
+                if (data.code === 800) { mask.classList.add('active'); stText.innerText = '二维码已失效'; document.getElementById('refreshQr').style.display = 'block'; clearInterval(qrCheckTimer); } 
+                else if (data.code === 802) { mask.classList.add('active'); stText.innerText = '扫码成功，请在手机上确认'; } 
+                else if (data.code === 803) { localStorage.setItem('ncm_cookie', data.cookie); mask.classList.add('active'); stText.innerText = '✅ 登录成功！'; clearInterval(qrCheckTimer); setTimeout(() => { location.reload(); }, 1500); }
+            }, 3000);
+        }
+
+        async function syncLoginStatus() {
+            const cookie = getLocalCookie();
+            if (!cookie) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/login/status?t=${Date.now()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cookie }) });
+                const data = await res.json();
+                if (data.data && data.data.profile) {
+                    document.getElementById('userAvatar').src = data.data.profile.avatarUrl; document.getElementById('userName').innerText = data.data.profile.nickname;
+                    document.getElementById('userStatus').innerText = '已解锁私人无限电台'; document.getElementById('tabNew').innerText = '🎵 私人推荐';
+                    if (data.data.profile.vipType > 0) document.getElementById('userVipTag').style.display = 'inline-block';
+                } else { localStorage.removeItem('ncm_cookie'); }
+            } catch (e) { localStorage.removeItem('ncm_cookie'); }
+        }
+
+        function showCustomAlert(message) {
+            document.getElementById('customAlertMessage').innerText = message;
+            const alertOverlay = document.getElementById('customAlert');
+            alertOverlay.style.display = 'flex'; alertOverlay.offsetHeight; alertOverlay.classList.add('show');
+        }
+        function hideCustomAlert() {
+            const alertOverlay = document.getElementById('customAlert'); alertOverlay.classList.remove('show');
+            setTimeout(() => { if(!alertOverlay.classList.contains('show')) alertOverlay.style.display = 'none'; }, 300);
+        }
+        document.getElementById('customAlertBtn').onclick = hideCustomAlert;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; }
+            return array;
+        }
+
+        function formatSongs(rawList, source) {
+            return rawList.map(item => {
+                let song = { id: item.id, name: item.name, type: 'song' };
+                if (source === 'cloudsearch' || source === 'playlistDetail' || source === 'recommend') {
+                    song.artist = item.ar ? item.ar[0].name : '未知'; song.cover = item.al ? item.al.picUrl : ''; song.fee = item.fee || 0; 
+                } else if (source === 'newsong') {
+                    song.artist = item.song.artists[0].name; song.cover = item.picUrl; song.fee = (item.song && item.song.fee !== undefined) ? item.song.fee : 0; 
                 }
-
-                const mysteryLi = document.createElement('li');
-                mysteryLi.style.justifyContent = 'center';
-                mysteryLi.style.color = '#888';
-                mysteryLi.style.padding = '30px 0';
-                mysteryLi.style.pointerEvents = 'none';
-                mysteryLi.style.borderBottom = 'none';
-                mysteryLi.style.flexDirection = 'column';
-                mysteryLi.style.gap = '10px';
-                mysteryLi.innerHTML = `
-                    <span style="font-size:24px;">🔮</span>
-                    <span>盲盒模式运行中... 下一首是未知的惊喜</span>
-                `;
-                playlistPanelList.appendChild(mysteryLi);
-                return;
-            }
-
-            playlistCountBadge.innerText = playingList.length;
-            panelHeaderCount.innerText = playingList.length;
-
-            if (playingList.length === 0) {
-                playlistPanelList.innerHTML = '<li style="justify-content:center;color:#888;">队列为空</li>';
-                return;
-            }
-
-            playingList.forEach((song, index) => {
-                const li = document.createElement('li');
-                const isCurrentSong = index === currentPlayingIndex;
-                const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
-                
-                if (isCurrentSong) li.classList.add('active');
-                
-                const prefixIcon = isCurrentSong ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : '';
-                const vipTag = song.fee === 1 ? `<span class="vip-tag">VIP</span>` : '';
-
-                li.innerHTML = `
-                    <span class="panel-song-name">${prefixIcon}${song.name}${vipTag}</span>
-                    <span class="panel-song-artist">${song.artist}</span>
-                `;
-                
-                li.onclick = () => {
-                    if (isCurrentSong) {
-                        if (audioPlayer.paused) audioPlayer.play();
-                        else audioPlayer.pause();
-                    } else playSong(index);
-                };
-                playlistPanelList.appendChild(li);
+                return song;
             });
         }
 
-        function scrollToCurrentSongInPanel() {
-            if (currentPlayingIndex === -1 || playingList.length === 0) return;
-            const lis = playlistPanelList.querySelectorAll('li');
-            if (lis[currentPlayingIndex]) lis[currentPlayingIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '00:00';
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
         }
 
+        // ====== 视图切换逻辑 ======
         function switchTab(tabId) {
             tabBtns.forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             backBtn.style.display = 'none'; 
             currentView = tabId;
+            
+            const dataListEl = document.getElementById('dataList');
+            if(tabId === 'tabBlindBox') {
+                document.getElementById('listHeaderContainer').style.display = 'none';
+                dataListEl.style.overflowY = 'hidden'; 
+            } else {
+                document.getElementById('listHeaderContainer').style.display = 'flex';
+                dataListEl.style.overflowY = 'auto'; 
+            }
         }
 
         document.getElementById('tabNew').onclick = () => {
             switchTab('tabNew');
-            if (viewDataCache.tabNew.length > 0) {
-                displayList = viewDataCache.tabNew;
-                renderList('今日最热新歌', 'song');
-            } else fetchNewSongs();
+            if (viewDataCache.tabNew.length > 0) { displayList = viewDataCache.tabNew; renderList(getLocalCookie() ? '为你的私人定制推荐' : '今日最热新歌', 'song'); } else fetchNewSongs();
         };
 
         document.getElementById('tabPlaylist').onclick = () => {
             switchTab('tabPlaylist');
-            if (viewDataCache.tabPlaylist.length > 0) {
-                displayList = viewDataCache.tabPlaylist;
-                renderList('全网热门歌单', 'playlist');
-            } else fetchHotPlaylists();
+            if (viewDataCache.tabPlaylist.length > 0) { displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist'); } else fetchHotPlaylists();
         };
 
         document.getElementById('tabBlindBox').onclick = () => {
@@ -759,27 +484,136 @@
 
         document.getElementById('tabSearch').onclick = () => {
             switchTab('tabSearch');
-            if (viewDataCache.tabSearch.length > 0) {
-                displayList = viewDataCache.tabSearch;
-                renderList(`"${lastSearchKeyword}" 的探索结果`, 'song');
-            } else {
-                renderSearchEmptyUI();
-            }
+            if (viewDataCache.tabSearch.length > 0) { displayList = viewDataCache.tabSearch; renderList(`"${lastSearchKeyword}" 的探索结果`, 'song'); } else renderSearchEmptyUI();
         };
 
         function renderSearchEmptyUI() {
             listTitle.innerText = '全网探索广场';
-            dataList.innerHTML = `
-                <div class="empty-search-container">
-                    <div class="empty-search-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </div>
-                    <div class="empty-search-title">在这里，发现你想听的任何声音</div>
-                    <div class="empty-search-desc">在上方输入歌曲名、歌手名或专辑名<br>敲击回车键，立即开始你的音乐探索。</div>
-                </div>
-            `;
+            dataList.innerHTML = `<div class="empty-search-container"><div class="empty-search-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div><div class="empty-search-title">在这里，发现你想听的任何声音</div><div class="empty-search-desc">在上方输入歌曲名、歌手名或专辑名<br>敲击回车键，立即开始你的音乐探索。</div></div>`;
         }
 
+        // ====== 盲盒 UI 渲染 ======
+        function renderBlindBoxUI() {
+            let containerHTML = '';
+            if (isBlindBoxMode && playingList.length > 0) {
+                const isPaused = audioPlayer.paused;
+                const iconClass = isPaused ? '' : 'icon-playing';
+                containerHTML = `
+                    <div class="blind-box-container">
+                        <div class="blind-box-icon ${iconClass}">🎧</div>
+                        <div id="slotMachineText" class="slot-text">【 ${currentBlindBoxTag} 】</div>
+                        <div class="blind-box-title" style="color:#333;">异次元电波已接通</div>
+                        <div class="blind-box-desc">不要看歌单，闭上眼睛，享受未知的音乐之旅。<br>遇到不喜欢的，直接使用快捷键或下一首按钮。</div>
+                        <button id="rollBtn" class="blind-box-btn">摇一摇，抽取新曲风</button>
+                    </div>
+                `;
+            } else {
+                containerHTML = `
+                    <div class="blind-box-container">
+                        <div class="blind-box-icon">🎲</div>
+                        <div id="slotMachineText" class="slot-text" style="color:#ec4141; margin-bottom: 5px;">- 未知惊喜 -</div>
+                        <div class="blind-box-title">未知的旋律，一期一会</div>
+                        <div class="blind-box-desc">抛下歌单，交给命运。<br>摇动专属骰子，抽取一段跨越时空的音乐电波。</div>
+                        <button id="rollBtn" class="blind-box-btn">摇一摇，抽取今日曲风</button>
+                    </div>
+                `;
+            }
+            
+            dataList.innerHTML = containerHTML;
+            const rollBtn = document.getElementById('rollBtn');
+            if (cdRemaining > 0) {
+                rollBtn.classList.add('disabled');
+                rollBtn.innerText = `重新装填磁带 (${cdRemaining}s)`;
+            }
+            rollBtn.onclick = handleBlindBoxRoll;
+        }
+
+        const blindBoxTags = ["华语", "欧美", "日语", "韩语", "流行", "摇滚", "民谣", "电子", "舞曲", "说唱", "轻音乐", "爵士", "乡村", "R&B/Soul", "古典", "民族", "英伦", "金属", "朋克", "蓝调", "雷鬼", "拉丁", "另类/独立", "New Age", "古风", "后摇", "Bossa Nova"];
+
+        async function handleBlindBoxRoll() {
+            if (cdRemaining > 0 || isSlotting) return;
+            isSlotting = true;
+            isBlindBoxMode = true; 
+
+            const rollBtn = document.getElementById('rollBtn');
+            const icon = document.querySelector('.blind-box-icon');
+            const title = document.querySelector('.blind-box-title');
+            
+            if(title) title.innerText = '正在调配惊喜...';
+            if(icon) {
+                icon.innerText = '🎲';
+                icon.classList.remove('icon-playing');
+                icon.classList.add('icon-spinning'); 
+            }
+
+            cdRemaining = 10;
+            rollBtn.classList.add('disabled');
+            cdTimer = setInterval(() => {
+                cdRemaining--;
+                const btn = document.getElementById('rollBtn');
+                if(btn) btn.innerText = `重新装填磁带 (${cdRemaining}s)`;
+                if (cdRemaining <= 0) {
+                    clearInterval(cdTimer);
+                    if(btn) {
+                        btn.innerText = '摇一摇，抽取新曲风';
+                        btn.classList.remove('disabled');
+                    }
+                }
+            }, 1000);
+
+            let slotTimer = setInterval(() => {
+                const st = document.getElementById('slotMachineText');
+                if(st) st.innerText = blindBoxTags[Math.floor(Math.random() * blindBoxTags.length)];
+            }, 70);
+
+            setTimeout(async () => {
+                clearInterval(slotTimer);
+                const finalTag = blindBoxTags[Math.floor(Math.random() * blindBoxTags.length)];
+                currentBlindBoxTag = finalTag; 
+                
+                const st = document.getElementById('slotMachineText');
+                if(st) {
+                    st.innerText = `【 ${finalTag} 】`;
+                    st.style.transform = 'scale(1.2)';
+                    setTimeout(() => { if(document.getElementById('slotMachineText')) document.getElementById('slotMachineText').style.transform = 'scale(1)'; }, 300);
+                }
+
+                try {
+                    const plRes = await fetch(`${API_BASE_URL}/top/playlist?cat=${encodeURIComponent(finalTag)}&limit=10`);
+                    const plData = await plRes.json();
+                    if (plData.playlists && plData.playlists.length > 0) {
+                        const randomPl = plData.playlists[Math.floor(Math.random() * plData.playlists.length)];
+                        const cookie = getLocalCookie();
+                        const reqParam = cookie ? `&cookie=${encodeURIComponent(cookie)}` : '';
+                        const trackRes = await fetch(`${API_BASE_URL}/playlist/track/all?id=${randomPl.id}&limit=100${reqParam}`);
+                        const trackData = await trackRes.json();
+
+                        let fetchedSongs = formatSongs(trackData.songs, 'playlistDetail');
+                        const history = getPlayHistory();
+                        
+                        fetchedSongs = fetchedSongs.filter(s => !history.includes(s.id));
+                        fetchedSongs = shuffleArray(fetchedSongs).slice(0, 50); 
+                        
+                        viewDataCache.tabBlindBox = fetchedSongs;
+                        playingList = viewDataCache.tabBlindBox; 
+                        
+                        if (currentView === 'tabBlindBox') { renderBlindBoxUI(); }
+                        if(playingList.length > 0) playSong(0);
+
+                    } else { 
+                        if(document.querySelector('.blind-box-title')) document.querySelector('.blind-box-title').innerText = '电波干扰，没有找到该标签歌曲'; 
+                        if(icon) icon.classList.remove('icon-spinning');
+                    }
+                } catch(e) { 
+                    if(document.querySelector('.blind-box-title')) document.querySelector('.blind-box-title').innerText = '网络断开，请重试'; 
+                    if(icon) icon.classList.remove('icon-spinning');
+                }
+                
+                isSlotting = false;
+            }, 1500);
+        }
+
+        // ====== 列表渲染 ======
         function renderList(title, type, isAppend = false, newData = []) {
             const prevScrollTop = dataList.scrollTop;
             
@@ -802,42 +636,27 @@
                 if (item.type === 'song') {
                     const isCurrentSong = playingList.length > 0 && playingList[currentPlayingIndex] && playingList[currentPlayingIndex].id === item.id;
                     const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
-                    
                     const icon = isCurrentSong ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : ICON_PLAY_SMALL;
                     const iconColorStyle = isCurrentSong ? 'color: inherit;' : 'color: #ccc;'; 
-
                     const vipTag = item.fee === 1 ? `<span class="vip-tag">VIP</span>` : '';
 
                     li.innerHTML = `
                         <img src="${item.cover}?param=50y50" class="item-cover">
-                        <div class="item-info">
-                            <span class="item-name">${item.name}${vipTag}</span>
-                            <span class="item-sub">${item.artist}</span>
-                        </div>
+                        <div class="item-info"><span class="item-name">${item.name}${vipTag}</span><span class="item-sub">${item.artist}</span></div>
                         <span style="${iconColorStyle} display: flex; align-items: center;">${icon}</span>
                     `;
-                    
                     if(isCurrentSong) li.classList.add('playing-now');
                     
                     li.onclick = () => {
                         isBlindBoxMode = false; 
-                        
                         playingList = [...displayList].filter(i => i.type === 'song');
                         const newIdx = playingList.findIndex(s => s.id === item.id);
-                        
-                        if (isCurrentSong) {
-                            if (audioPlayer.paused) audioPlayer.play();
-                            else audioPlayer.pause();
-                        } else playSong(newIdx);
+                        if (isCurrentSong) { if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); } else playSong(newIdx);
                     };
                 } else {
                     li.innerHTML = `
                         <img src="${item.cover}?param=50y50" class="item-cover">
-                        <div class="item-info">
-                            <span class="item-name">${item.name}</span>
-                            <span class="item-sub">推荐歌单</span>
-                        </div>
-                        <span>➡️</span>
+                        <div class="item-info"><span class="item-name">${item.name}</span><span class="item-sub">推荐歌单</span></div><span>➡️</span>
                     `;
                     li.onclick = () => fetchPlaylistDetail(item.id, item.name);
                 }
@@ -845,7 +664,8 @@
             });
 
             if (!isAppend) dataList.scrollTop = prevScrollTop;
-            if (pagination[currentView] && !pagination[currentView].hasMore) {
+            
+            if (currentView !== 'tabBlindBox' && pagination[currentView] && !pagination[currentView].hasMore) {
                 if(!document.getElementById('noMoreIndicator')) {
                     const noMore = document.createElement('li');
                     noMore.id = 'noMoreIndicator';
@@ -856,131 +676,146 @@
             }
         }
 
-        function renderBlindBoxUI() {
-            listTitle.innerText = '专属音乐盲盒';
-            
-            if (isBlindBoxMode && playingList.length > 0) {
-                dataList.innerHTML = `
-                    <div class="blind-box-container">
-                        <div class="blind-box-icon icon-playing">🎧</div>
-                        <div class="blind-box-title" style="color:#ec4141;">盲盒已开启，惊喜放送中</div>
-                        <div class="blind-box-desc">不要看歌单，闭上眼睛，享受未知的音乐之旅。<br>遇到不喜欢的，直接使用快捷键或下一首按钮。</div>
-                    </div>
-                `;
-            } else {
-                dataList.innerHTML = `
-                    <div class="blind-box-container">
-                        <div class="blind-box-icon">🎁</div>
-                        <div class="blind-box-title">未知的旋律，一期一会</div>
-                        <div class="blind-box-desc">这里没有歌单，只有点击开启后的惊喜。<br>彻底打乱全网热门曲库，每次点击都是全新体验。</div>
-                        <button id="startBlindBoxBtn" class="blind-box-btn">开启今日盲盒</button>
-                    </div>
-                `;
+        // 【核心大礼包】：列表微操状态更新，不销毁 DOM
+        function updateListPlayState() {
+            if(currentView === 'tabBlindBox') return;
+            const lis = dataList.querySelectorAll('li');
+            lis.forEach((li, index) => {
+                if (li.id === 'loadingMoreIndicator' || li.id === 'noMoreIndicator') return;
                 
-                document.getElementById('startBlindBoxBtn').onclick = startBlindBoxSession;
+                // 由于可能有懒加载，我们需要对应 displayList 的索引
+                const item = displayList[index];
+                if (!item || item.type !== 'song') return;
+
+                const isCurrentSong = playingList.length > 0 && playingList[currentPlayingIndex] && playingList[currentPlayingIndex].id === item.id;
+                const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
                 
-                if (blindBoxSourcePool.length < 50) {
-                    fetchBlindBoxDataInBackground();
-                }
-            }
-        }
+                const iconSpan = li.querySelector('span:last-child');
+                const vipTag = li.querySelector('.vip-tag');
+                const subText = li.querySelector('.item-sub');
 
-        async function fetchBlindBoxDataInBackground() {
-            try {
-                const randomOffset = Math.floor(Math.random() * 50);
-                const playlistsRes = await fetch(`${API_BASE_URL}/top/playlist?limit=5&offset=${randomOffset}`);
-                const playlistsData = await playlistsRes.json();
-                
-                if (playlistsData.playlists && playlistsData.playlists.length > 0) {
-                    const randomPlaylist = playlistsData.playlists[Math.floor(Math.random() * playlistsData.playlists.length)];
-                    const detailRes = await fetch(`${API_BASE_URL}/playlist/track/all?id=${randomPlaylist.id}&limit=100`);
-                    const detailData = await detailRes.json();
-                    let poolSongs = formatSongs(detailData.songs, 'playlistDetail');
-                    blindBoxSourcePool = [...blindBoxSourcePool, ...poolSongs];
-                }
-
-                const newRes = await fetch(`${API_BASE_URL}/personalized/newsong?limit=20`);
-                const newData = await newRes.json();
-                let newSongs = formatSongs(newData.result, 'newsong');
-                blindBoxSourcePool = [...blindBoxSourcePool, ...newSongs];
-
-                const uniquePool = [];
-                const idSet = new Set();
-                blindBoxSourcePool.forEach(song => {
-                    if (!idSet.has(song.id)) {
-                        idSet.add(song.id);
-                        uniquePool.push(song);
+                if (isCurrentSong) {
+                    li.classList.add('playing-now');
+                    if (iconSpan) {
+                        iconSpan.innerHTML = isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL;
+                        iconSpan.style.color = 'inherit';
                     }
-                });
-                blindBoxSourcePool = shuffleArray(uniquePool);
-            } catch (e) {
-                console.warn("盲盒后台进货失败");
-            }
+                    if (vipTag) { vipTag.style.color = 'white'; vipTag.style.borderColor = 'white'; }
+                    if (subText) { subText.style.color = 'rgba(255,255,255,0.8)'; }
+                } else {
+                    li.classList.remove('playing-now');
+                    if (iconSpan) {
+                        iconSpan.innerHTML = ICON_PLAY_SMALL;
+                        iconSpan.style.color = '#ccc';
+                    }
+                    if (vipTag) { vipTag.style.color = '#ec4141'; vipTag.style.borderColor = '#ec4141'; }
+                    if (subText) { subText.style.color = '#888'; }
+                }
+            });
         }
 
-        async function startBlindBoxSession() {
-            const btn = document.getElementById('startBlindBoxBtn');
-            btn.innerText = '正在调配惊喜...';
-            btn.style.pointerEvents = 'none';
-
-            if (blindBoxSourcePool.length < 20) {
-                await fetchBlindBoxDataInBackground();
+        function updatePlaylistPanelState() {
+            if (!playlistPanel.classList.contains('show')) return;
+            
+            if (isBlindBoxMode) {
+                const mysteryLi = playlistPanelList.querySelector('li.active');
+                if(mysteryLi && currentPlayingIndex !== -1 && playingList[currentPlayingIndex]) {
+                    const isAudioPlaying = !audioPlayer.paused;
+                    const prefixIcon = isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL;
+                    const nameSpan = mysteryLi.querySelector('.panel-song-name');
+                    if(nameSpan) nameSpan.innerHTML = `${prefixIcon}${playingList[currentPlayingIndex].name}`;
+                }
+                return;
             }
 
-            isBlindBoxMode = true;
-            
-            const chunk = blindBoxSourcePool.splice(0, 50);
-            playingList = chunk;
-            
-            renderBlindBoxUI();
-            playSong(0);
+            const lis = playlistPanelList.querySelectorAll('li');
+            lis.forEach((li, index) => {
+                if(li.innerText === '队列为空') return;
+                const isCurrentSong = index === currentPlayingIndex;
+                const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
+                const nameSpan = li.querySelector('.panel-song-name');
+                if (!nameSpan) return;
+                
+                const song = playingList[index];
+                const prefixIcon = isCurrentSong ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : '';
+                const vipTag = song.fee === 1 ? `<span class="vip-tag">VIP</span>` : '';
+                
+                nameSpan.innerHTML = `${prefixIcon}${song.name}${vipTag}`;
+                if (isCurrentSong) li.classList.add('active');
+                else li.classList.remove('active');
+            });
+        }
+
+        async function fillPrivateReservoir() {
+            if (isFetchingReservoir || !getLocalCookie()) return;
+            isFetchingReservoir = true;
+            try {
+                const res = await fetch(`${API_BASE_URL}/recommend/resource?cookie=${encodeURIComponent(getLocalCookie())}&t=${Date.now()}`);
+                const data = await res.json();
+                if (data.code === 200 && data.recommend && data.recommend.length > 0) {
+                    const playlists = data.recommend.slice(0, 3);
+                    let newTracks = [];
+                    for (let p of playlists) {
+                        const pRes = await fetch(`${API_BASE_URL}/playlist/track/all?id=${p.id}&limit=50&cookie=${encodeURIComponent(getLocalCookie())}`);
+                        const pData = await pRes.json();
+                        newTracks = newTracks.concat(formatSongs(pData.songs, 'playlistDetail'));
+                    }
+                    const history = getPlayHistory();
+                    const currentIds = viewDataCache.tabNew.map(s => s.id);
+                    let validTracks = newTracks.filter(s => !history.includes(s.id) && !currentIds.includes(s.id) && !privateReservoir.some(r=>r.id===s.id));
+                    privateReservoir = privateReservoir.concat(shuffleArray(validTracks));
+                }
+            } catch(e) {}
+            isFetchingReservoir = false;
         }
 
         async function fetchNewSongs(isLoadMore = false) {
             currentView = 'tabNew';
-            if (!isLoadMore) {
-                pagination.tabNew = { offset: 0, hasMore: true };
-                viewDataCache.tabNew = [];
-                dataList.innerHTML = '<li style="justify-content:center;">加载中...</li>';
-            }
-            const limit = isLoadMore ? 10 : 20;
-            const offset = pagination.tabNew.offset;
+            const cookie = getLocalCookie();
+            if (!isLoadMore) { pagination.tabNew = { offset: 0, hasMore: true }; viewDataCache.tabNew = []; dataList.innerHTML = '<li style="justify-content:center;">正在为您调制私人电波...</li>'; }
+
             try {
-                const res = await fetch(`${API_BASE_URL}/personalized/newsong?limit=${limit}&offset=${offset}`);
-                const data = await res.json();
-                const fetchedSongs = formatSongs(data.result, 'newsong');
-                const newSongs = fetchedSongs.filter(newSong => !viewDataCache.tabNew.some(cachedSong => cachedSong.id === newSong.id));
-                if (newSongs.length === 0) {
-                    pagination.tabNew.hasMore = false;
-                    renderList('今日最热新歌', 'song', true, []); 
-                    return; 
+                if (cookie) {
+                    if (!isLoadMore) {
+                        const res = await fetch(`${API_BASE_URL}/recommend/songs?cookie=${encodeURIComponent(cookie)}&t=${Date.now()}`);
+                        const data = await res.json();
+                        if(data.code === 200) {
+                            viewDataCache.tabNew = formatSongs(data.data.dailySongs, 'recommend');
+                            displayList = viewDataCache.tabNew;
+                            renderList('为你的私人定制推荐', 'song');
+                            fillPrivateReservoir(); 
+                        }
+                    }
+                } else {
+                    const limit = isLoadMore ? 10 : 20; const offset = pagination.tabNew.offset;
+                    const res = await fetch(`${API_BASE_URL}/personalized/newsong?limit=${limit}&offset=${offset}`);
+                    const data = await res.json();
+                    const fetchedSongs = formatSongs(data.result, 'newsong');
+                    
+                    pagination.tabNew.offset += fetchedSongs.length;
+                    if (fetchedSongs.length < limit) pagination.tabNew.hasMore = false;
+
+                    const newSongs = fetchedSongs.filter(song => !viewDataCache.tabNew.some(cached => cached.id === song.id));
+                    if (newSongs.length === 0 && !pagination.tabNew.hasMore) { renderList('今日最热新歌', 'song', true, []); return;  }
+
+                    viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs];
+                    displayList = viewDataCache.tabNew;
+                    renderList('今日最热新歌', 'song', isLoadMore, newSongs);
                 }
-                if (newSongs.length < limit) pagination.tabNew.hasMore = false;
-                pagination.tabNew.offset += newSongs.length;
-                viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs];
-                displayList = viewDataCache.tabNew;
-                renderList('今日最热新歌', 'song', isLoadMore, newSongs);
             } catch (e) { listTitle.innerText = '加载失败'; }
         }
 
         async function fetchHotPlaylists(isLoadMore = false) {
             currentView = 'tabPlaylist';
-            if (!isLoadMore) {
-                pagination.tabPlaylist = { offset: 0, hasMore: true };
-                viewDataCache.tabPlaylist = [];
-                dataList.innerHTML = '<li style="justify-content:center;">加载中...</li>';
-            }
-            const limit = isLoadMore ? 10 : 20;
-            const offset = pagination.tabPlaylist.offset;
+            if (!isLoadMore) { pagination.tabPlaylist = { offset: 0, hasMore: true }; viewDataCache.tabPlaylist = []; dataList.innerHTML = '<li style="justify-content:center;">加载中...</li>'; }
+            const limit = isLoadMore ? 10 : 20; const offset = pagination.tabPlaylist.offset;
             try {
                 const res = await fetch(`${API_BASE_URL}/top/playlist?limit=${limit}&offset=${offset}`);
                 const data = await res.json();
-                const rawList = data.playlists || data.result; 
-                const newPlaylists = rawList.map(p => ({
-                    id: p.id, name: p.name, cover: p.coverImgUrl || p.picUrl, trackCount: p.trackCount, type: 'playlist'
-                }));
-                if (newPlaylists.length < limit) pagination.tabPlaylist.hasMore = false;
-                pagination.tabPlaylist.offset += newPlaylists.length;
+                const fetchedPlaylists = (data.playlists || data.result).map(p => ({ id: p.id, name: p.name, cover: p.coverImgUrl || p.picUrl, trackCount: p.trackCount, type: 'playlist' }));
+                pagination.tabPlaylist.offset += fetchedPlaylists.length;
+                if (fetchedPlaylists.length < limit) pagination.tabPlaylist.hasMore = false;
+                const newPlaylists = fetchedPlaylists.filter(p => !viewDataCache.tabPlaylist.some(c => c.id === p.id));
                 viewDataCache.tabPlaylist = [...viewDataCache.tabPlaylist, ...newPlaylists];
                 displayList = viewDataCache.tabPlaylist;
                 renderList('全网热门歌单', 'playlist', isLoadMore, newPlaylists);
@@ -989,166 +824,135 @@
 
         async function fetchPlaylistDetail(id, name, isLoadMore = false) {
             currentView = 'playlistDetail';
-            if (!isLoadMore) {
-                currentPlaylistId = id;
-                pagination.playlistDetail = { offset: 0, hasMore: true };
-                viewDataCache.playlistDetail = [];
-                dataList.innerHTML = '<li style="justify-content:center;">解析歌单中...</li>';
-            }
-            const limit = isLoadMore ? 10 : 20;
-            const offset = pagination.playlistDetail.offset;
+            const cookie = getLocalCookie();
+            if (!isLoadMore) { currentPlaylistId = id; pagination.playlistDetail = { offset: 0, hasMore: true }; viewDataCache.playlistDetail = []; dataList.innerHTML = '<li style="justify-content:center;">解析歌单中...</li>'; }
+            const limit = isLoadMore ? 10 : 20; const offset = pagination.playlistDetail.offset;
             try {
-                const res = await fetch(`${API_BASE_URL}/playlist/track/all?id=${id}&limit=${limit}&offset=${offset}`);
+                const res = await fetch(`${API_BASE_URL}/playlist/track/all?id=${id}&limit=${limit}&offset=${offset}${cookie ? '&cookie='+encodeURIComponent(cookie) : ''}`);
                 const data = await res.json();
-                const newSongs = formatSongs(data.songs, 'playlistDetail');
-                if (newSongs.length < limit) pagination.playlistDetail.hasMore = false;
-                pagination.playlistDetail.offset += newSongs.length;
+                const fetchedSongs = formatSongs(data.songs, 'playlistDetail');
+                pagination.playlistDetail.offset += fetchedSongs.length;
+                if (fetchedSongs.length < limit) pagination.playlistDetail.hasMore = false;
+                const newSongs = fetchedSongs.filter(s => !viewDataCache.playlistDetail.some(c => c.id === s.id));
                 viewDataCache.playlistDetail = [...viewDataCache.playlistDetail, ...newSongs];
                 displayList = viewDataCache.playlistDetail;
                 
                 backBtn.style.display = 'block';
-                backBtn.onclick = () => { 
-                    switchTab('tabPlaylist');
-                    displayList = viewDataCache.tabPlaylist;
-                    renderList('全网热门歌单', 'playlist');
-                };
+                backBtn.onclick = () => { switchTab('tabPlaylist'); displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist'); };
                 renderList(`歌单内容: ${name}`, 'song', isLoadMore, newSongs);
             } catch (e) { listTitle.innerText = '歌单解析失败'; }
         }
 
         async function fetchSearch(isLoadMore = false, keyword = '') {
             currentView = 'tabSearch';
-            if (!isLoadMore) {
-                lastSearchKeyword = keyword;
-                pagination.tabSearch = { offset: 0, hasMore: true };
-                viewDataCache.tabSearch = [];
-                dataList.innerHTML = '<li style="justify-content:center;">全网探索中...</li>';
-            }
-            const currentKw = lastSearchKeyword;
-            const limit = isLoadMore ? 10 : 20;
-            const offset = pagination.tabSearch.offset;
+            if (!isLoadMore) { lastSearchKeyword = keyword; pagination.tabSearch = { offset: 0, hasMore: true }; viewDataCache.tabSearch = []; dataList.innerHTML = '<li style="justify-content:center;">全网探索中...</li>'; }
+            const limit = isLoadMore ? 10 : 20; const offset = pagination.tabSearch.offset;
             try {
-                const res = await fetch(`${API_BASE_URL}/cloudsearch?keywords=${currentKw}&limit=${limit}&offset=${offset}`);
+                const res = await fetch(`${API_BASE_URL}/cloudsearch?keywords=${lastSearchKeyword}&limit=${limit}&offset=${offset}`);
                 const data = await res.json();
-                let newSongs = [];
-                if (data.result && data.result.songs) {
-                    newSongs = formatSongs(data.result.songs, 'cloudsearch');
-                }
-                if (newSongs.length < limit) pagination.tabSearch.hasMore = false;
-                pagination.tabSearch.offset += newSongs.length;
+                let fetchedSongs = [];
+                if (data.result && data.result.songs) fetchedSongs = formatSongs(data.result.songs, 'cloudsearch');
+                pagination.tabSearch.offset += fetchedSongs.length;
+                if (fetchedSongs.length < limit) pagination.tabSearch.hasMore = false;
+                const newSongs = fetchedSongs.filter(song => !viewDataCache.tabSearch.some(cached => cached.id === song.id));
                 viewDataCache.tabSearch = [...viewDataCache.tabSearch, ...newSongs];
                 displayList = viewDataCache.tabSearch;
-                renderList(`"${currentKw}" 的探索结果`, 'song', isLoadMore, newSongs);
+                renderList(`"${lastSearchKeyword}" 的探索结果`, 'song', isLoadMore, newSongs);
             } catch (e) { listTitle.innerText = '探索失败'; }
         }
 
         document.getElementById('searchBtn').onclick = function() {
             const keyword = searchInput.value.trim();
-            if (!keyword) {
-                switchTab('tabSearch');
-                if (viewDataCache.tabSearch.length === 0) renderSearchEmptyUI();
-                return;
-            }
-            switchTab('tabSearch');
-            fetchSearch(false, keyword);
+            if (!keyword) { switchTab('tabSearch'); if (viewDataCache.tabSearch.length === 0) renderSearchEmptyUI(); return; }
+            switchTab('tabSearch'); fetchSearch(false, keyword);
         };
 
-        dataList.addEventListener('scroll', () => {
-            if (dataList.scrollHeight - dataList.scrollTop <= dataList.clientHeight + 10) loadMoreData();
-        });
+        dataList.addEventListener('scroll', () => { if (dataList.scrollHeight - dataList.scrollTop <= dataList.clientHeight + 10) loadMoreData(); });
 
         async function loadMoreData() {
             if (isFetching || currentView === 'tabBlindBox') return; 
-            if (pagination[currentView] && !pagination[currentView].hasMore) return;
             isFetching = true;
-            const loadingLi = document.createElement('li');
-            loadingLi.id = 'loadingMoreIndicator';
-            loadingLi.className = 'loading-more';
-            loadingLi.innerText = '正在加载更多...';
-            dataList.appendChild(loadingLi);
-            dataList.scrollTop = dataList.scrollHeight;
+            
+            const loadingLi = document.createElement('li'); loadingLi.id = 'loadingMoreIndicator'; loadingLi.className = 'loading-more'; loadingLi.innerText = '正在加载更多...';
+            dataList.appendChild(loadingLi); dataList.scrollTop = dataList.scrollHeight;
+
             try {
-                if (currentView === 'tabNew') await fetchNewSongs(true);
+                if (currentView === 'tabNew') {
+                    if (getLocalCookie()) {
+                        if (privateReservoir.length < 20) await fillPrivateReservoir();
+                        loadingLi.remove();
+                        if (privateReservoir.length > 0) {
+                            const chunk = privateReservoir.splice(0, 20);
+                            viewDataCache.tabNew = viewDataCache.tabNew.concat(chunk);
+                            displayList = viewDataCache.tabNew;
+                            renderList('为你的私人定制推荐', 'song', true, chunk);
+                            if (privateReservoir.length < 50) fillPrivateReservoir(); 
+                        } else {
+                            const noMore = document.createElement('li'); noMore.className = 'no-more'; noMore.innerText = '- 正在为您探索更多宇宙边缘的声音 -'; dataList.appendChild(noMore);
+                        }
+                    } else { await fetchNewSongs(true); }
+                }
                 else if (currentView === 'tabPlaylist') await fetchHotPlaylists(true);
                 else if (currentView === 'tabSearch') await fetchSearch(true, lastSearchKeyword);
-                else if (currentView === 'playlistDetail') {
-                    const cleanName = listTitle.innerText.replace('歌单内容: ', '');
-                    await fetchPlaylistDetail(currentPlaylistId, cleanName, true);
-                }
+                else if (currentView === 'playlistDetail') { const cleanName = listTitle.innerText.replace('歌单内容: ', ''); await fetchPlaylistDetail(currentPlaylistId, cleanName, true); }
             } finally { isFetching = false; }
         }
 
         searchInput.addEventListener('input', () => { clearSearch.style.display = searchInput.value.length > 0 ? 'flex' : 'none'; });
-        clearSearch.onclick = () => { 
-            searchInput.value = ''; 
-            clearSearch.style.display = 'none'; 
-            searchInput.focus(); 
-            if(currentView === 'tabSearch') {
-                viewDataCache.tabSearch = []; 
-                renderSearchEmptyUI();
-            }
-        };
+        clearSearch.onclick = () => { searchInput.value = ''; clearSearch.style.display = 'none'; searchInput.focus(); if(currentView === 'tabSearch') { viewDataCache.tabSearch = []; renderSearchEmptyUI(); } };
         searchInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('searchBtn').click(); });
 
+        // ====== 音乐控制与事件 ======
         async function playSong(index) {
             if (!playingList[index]) return;
             const song = playingList[index];
             currentPlayingIndex = index;
+            addPlayHistory(song.id);
+            
+            updatePlaylistBadge(); 
 
             document.getElementById('currentSongName').innerText = song.name;
             document.getElementById('currentArtist').innerText = song.artist;
             document.getElementById('albumCover').src = song.cover + '?param=300y300';
             fetchLyric(song.id);
-            renderPlaylistPanel();
+            
+            // 如果面板开着，做 DOM 微更新即可
+            if(playlistPanel.classList.contains('show')) {
+                updatePlaylistPanelState();
+                scrollToCurrentSongInPanel();
+            }
 
             if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: song.name,
-                    artist: song.artist,
-                    album: isBlindBoxMode ? '专属音乐盲盒' : 'MusicZ',
-                    artwork: [
-                        { src: song.cover + '?param=300y300', sizes: '300x300', type: 'image/jpeg' }
-                    ]
-                });
+                navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.artist, album: 'MusicZ', artwork: [{ src: song.cover + '?param=300y300', sizes: '300x300', type: 'image/jpeg' }] });
             }
 
             try {
-                const urlRes = await fetch(`${API_BASE_URL}/song/url?id=${song.id}`);
+                const cookie = getLocalCookie();
+                const urlRes = await fetch(`${API_BASE_URL}/song/url?id=${song.id}${cookie ? '&cookie='+encodeURIComponent(cookie) : ''}`);
                 const urlData = await urlRes.json();
                 const audioUrl = urlData.data[0].url;
                 if (audioUrl) {
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.play();
+                    audioPlayer.src = audioUrl; audioPlayer.play();
                 } else {
-                    const reason = song.fee === 1 ? '需VIP或无版权' : '无版权';
-                    showCustomAlert(`《${song.name}》${reason}，已自动跳过`);
-                    playNextSong(); 
+                    showCustomAlert(`《${song.name}》无版权或需VIP，已跳过`); playNextSong(); 
                 }
             } catch (e) {}
         }
 
         async function fetchLyric(songId) {
             const lyricList = document.getElementById('lyricList');
-            lyricList.innerHTML = '<li>歌词加载中...</li>';
-            lyricList.style.transform = `translateY(0px)`; 
-            parsedLyrics = [];
+            lyricList.innerHTML = '<li>歌词加载中...</li>'; lyricList.style.transform = `translateY(0px)`; parsedLyrics = [];
             try {
                 const res = await fetch(`${API_BASE_URL}/lyric?id=${songId}`);
                 const data = await res.json();
                 if (data.lrc && data.lrc.lyric) {
-                    const lines = data.lrc.lyric.split('\n');
-                    lyricList.innerHTML = ''; 
+                    const lines = data.lrc.lyric.split('\n'); lyricList.innerHTML = ''; 
                     lines.forEach(line => {
                         const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
                         if (match) {
                             const time = parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3])/(match[3].length===2?100:1000);
                             const text = match[4].trim();
-                            if (text) {
-                                parsedLyrics.push({ time, text });
-                                const li = document.createElement('li');
-                                li.innerText = text;
-                                lyricList.appendChild(li);
-                            }
+                            if (text) { parsedLyrics.push({ time, text }); const li = document.createElement('li'); li.innerText = text; lyricList.appendChild(li); }
                         }
                     });
                 } else { lyricList.innerHTML = '<li>纯音乐 / 暂无歌词</li>'; }
@@ -1157,12 +961,8 @@
 
         audioPlayer.addEventListener('timeupdate', () => {
             if (parsedLyrics.length === 0) return;
-            const currentTime = audioPlayer.currentTime;
-            let activeIndex = -1;
-            for (let i = 0; i < parsedLyrics.length; i++) {
-                if (currentTime >= parsedLyrics[i].time) activeIndex = i;
-                else break;
-            }
+            const currentTime = audioPlayer.currentTime; let activeIndex = -1;
+            for (let i = 0; i < parsedLyrics.length; i++) { if (currentTime >= parsedLyrics[i].time) activeIndex = i; else break; }
             if (activeIndex !== -1) {
                 const lis = document.getElementById('lyricList').querySelectorAll('li');
                 lis.forEach(li => li.classList.remove('active'));
@@ -1171,144 +971,158 @@
                     currentLi.classList.add('active');
                     const boxHalfHeight = document.querySelector('.lyric-box').offsetHeight / 2;
                     const liCenter = currentLi.offsetTop + (currentLi.offsetHeight / 2);
-                    let offset = liCenter - boxHalfHeight;
-                    if (offset < 0) offset = 0;
+                    let offset = liCenter - boxHalfHeight; if (offset < 0) offset = 0;
                     document.getElementById('lyricList').style.transform = `translateY(-${offset}px)`;
                 }
             }
         });
 
-        const PLAY_MODES = ['loop', 'single', 'random'];
-        let modeIdx = 0;
-        document.getElementById('modeBtn').onclick = function() {
-            modeIdx = (modeIdx + 1) % PLAY_MODES.length;
-            this.innerText = ['🔁 列表循环', '🔂 单曲循环', '🔀 随机播放'][modeIdx];
-        };
+        const PLAY_MODES = ['loop', 'single', 'random']; let modeIdx = 0;
+        document.getElementById('modeBtn').onclick = function() { modeIdx = (modeIdx + 1) % PLAY_MODES.length; this.innerText = ['🔁 列表循环', '🔂 单曲循环', '🔀 随机播放'][modeIdx]; };
 
         function playNextSong() {
             if (playingList.length === 0) return;
-            if (isBlindBoxMode && currentPlayingIndex >= playingList.length - 3) {
-                if(blindBoxSourcePool.length < 20) fetchBlindBoxDataInBackground();
-                const chunk = blindBoxSourcePool.splice(0, 30);
-                playingList = [...playingList, ...chunk];
-            }
             let nextIndex = (currentPlayingIndex + 1) % playingList.length;
-            if (PLAY_MODES[modeIdx] === 'random' && !isBlindBoxMode) {
-                nextIndex = Math.floor(Math.random() * playingList.length);
-            }
+            if (PLAY_MODES[modeIdx] === 'random') nextIndex = Math.floor(Math.random() * playingList.length);
             playSong(nextIndex);
         }
 
         function playPrevSong() {
             if (playingList.length === 0) return;
             let prevIndex = currentPlayingIndex - 1;
-            if (PLAY_MODES[modeIdx] === 'random' && !isBlindBoxMode) {
-                prevIndex = Math.floor(Math.random() * playingList.length);
-            } else if (prevIndex < 0) {
-                prevIndex = playingList.length - 1;
-            }
+            if (PLAY_MODES[modeIdx] === 'random') prevIndex = Math.floor(Math.random() * playingList.length); else if (prevIndex < 0) prevIndex = playingList.length - 1;
             playSong(prevIndex);
         }
         
-        nextBtn.onclick = playNextSong;
-        prevBtn.onclick = playPrevSong;
-        audioPlayer.onended = playNextSong;
+        nextBtn.onclick = playNextSong; prevBtn.onclick = playPrevSong; audioPlayer.onended = playNextSong;
         
         playPauseBtn.onclick = () => {
-            if (playingList.length === 0) {
-                showCustomAlert('当前播放列表为空，快去探索一些音乐吧~');
-                return;
-            }
-            if (audioPlayer.paused) audioPlayer.play();
-            else audioPlayer.pause();
+            if (playingList.length === 0) { showCustomAlert('当前播放列表为空，快去探索一些音乐吧~'); return; }
+            if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
         };
 
         function updateProgressUI() {
-            let percentage = 0;
-            if (progressBar.max > 0) {
-                percentage = (progressBar.value / progressBar.max) * 100;
-            }
+            let percentage = 0; if (progressBar.max > 0) percentage = (progressBar.value / progressBar.max) * 100;
             progressBar.style.setProperty('--progress', `${percentage}%`);
         }
 
         let isDraggingProgress = false;
-        
-        audioPlayer.addEventListener('loadedmetadata', () => {
-            progressBar.max = audioPlayer.duration;
-            durationText.innerText = formatTime(audioPlayer.duration);
-        });
-
-        audioPlayer.addEventListener('timeupdate', () => {
-            if (!isDraggingProgress) {
-                progressBar.value = audioPlayer.currentTime;
-                currentTimeText.innerText = formatTime(audioPlayer.currentTime);
-                updateProgressUI(); 
-            }
-        });
-
+        audioPlayer.addEventListener('loadedmetadata', () => { progressBar.max = audioPlayer.duration; durationText.innerText = formatTime(audioPlayer.duration); });
+        audioPlayer.addEventListener('timeupdate', () => { if (!isDraggingProgress) { progressBar.value = audioPlayer.currentTime; currentTimeText.innerText = formatTime(audioPlayer.currentTime); updateProgressUI(); } });
         progressBar.addEventListener('mousedown', () => isDraggingProgress = true);
-        progressBar.addEventListener('input', () => {
-            currentTimeText.innerText = formatTime(progressBar.value);
-            updateProgressUI(); 
-        });
-        progressBar.addEventListener('mouseup', () => {
-            isDraggingProgress = false;
-            audioPlayer.currentTime = progressBar.value;
-        });
+        progressBar.addEventListener('input', () => { currentTimeText.innerText = formatTime(progressBar.value); updateProgressUI(); });
+        progressBar.addEventListener('mouseup', () => { isDraggingProgress = false; audioPlayer.currentTime = progressBar.value; });
 
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('previoustrack', playPrevSong);
-            navigator.mediaSession.setActionHandler('nexttrack', playNextSong);
-            navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
-            navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
+            navigator.mediaSession.setActionHandler('previoustrack', playPrevSong); navigator.mediaSession.setActionHandler('nexttrack', playNextSong);
+            navigator.mediaSession.setActionHandler('play', () => audioPlayer.play()); navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
         }
 
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName.toLowerCase() === 'input') return;
             switch(e.code) {
-                case 'Space':
-                    e.preventDefault(); 
-                    if (playingList.length === 0) {
-                        showCustomAlert('当前播放列表为空，快去探索一些音乐吧~');
-                        break;
-                    }
-                    if (audioPlayer.paused) audioPlayer.play();
-                    else audioPlayer.pause();
-                    break;
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    playPrevSong();
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    playNextSong();
-                    break;
+                case 'Space': e.preventDefault(); if (playingList.length === 0) { showCustomAlert('列表为空~'); break; } if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); break;
+                case 'ArrowLeft': e.preventDefault(); playPrevSong(); break;
+                case 'ArrowRight': e.preventDefault(); playNextSong(); break;
             }
         });
 
+        // ====== 解决 DOM 重绘 Bug 的终极微操区 ======
         audioPlayer.addEventListener('play', () => {
-            playPauseBtn.innerHTML = ICON_PAUSE_LARGE;
-            playPauseBtn.classList.add('is-paused'); 
+            playPauseBtn.innerHTML = ICON_PAUSE_LARGE; playPauseBtn.classList.add('is-paused'); 
             
-            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {
-            } else if (currentView !== 'tabBlindBox') {
-                renderList(listTitle.innerText, 'song');
+            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {} 
+            else if (currentView === 'tabBlindBox') { 
+                const icon = document.querySelector('.blind-box-icon');
+                // 仅给节点加类名，绝不重绘整个 DOM！
+                if (icon && icon.innerText === '🎧') icon.classList.add('icon-playing');
+            } 
+            else {
+                // 原来这里是 renderList 砸毁重建，现在换成微操更新状态
+                updateListPlayState();
             }
-            if (playlistPanel.classList.contains('show')) renderPlaylistPanel();
+            updatePlaylistPanelState();
         });
         
         audioPlayer.addEventListener('pause', () => {
-            playPauseBtn.innerHTML = ICON_PLAY_LARGE;
-            playPauseBtn.classList.remove('is-paused'); 
+            playPauseBtn.innerHTML = ICON_PLAY_LARGE; playPauseBtn.classList.remove('is-paused'); 
             
-            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {
-            } else if (currentView !== 'tabBlindBox') {
-                renderList(listTitle.innerText, 'song');
+            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {} 
+            else if (currentView === 'tabBlindBox') { 
+                const icon = document.querySelector('.blind-box-icon');
+                if (icon) icon.classList.remove('icon-playing');
+            } 
+            else {
+                updateListPlayState();
             }
-            if (playlistPanel.classList.contains('show')) renderPlaylistPanel();
+            updatePlaylistPanelState();
         });
+        // ===========================================
 
-        window.onload = () => fetchNewSongs();
+        function renderPlaylistPanel() {
+            playlistPanelList.innerHTML = '';
+            
+            if (isBlindBoxMode) {
+                panelHeaderCount.innerText = '∞';
+                if (currentPlayingIndex !== -1 && playingList[currentPlayingIndex]) {
+                    const song = playingList[currentPlayingIndex];
+                    const isAudioPlaying = !audioPlayer.paused;
+                    const prefixIcon = isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL;
+                    const li = document.createElement('li'); li.classList.add('active');
+                    li.innerHTML = `<span class="panel-song-name">${prefixIcon}${song.name}</span><span class="panel-song-artist">${song.artist}</span>`;
+                    li.onclick = () => { if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); };
+                    playlistPanelList.appendChild(li);
+                }
+                const mysteryLi = document.createElement('li'); mysteryLi.style.justifyContent = 'center'; mysteryLi.style.color = '#888'; mysteryLi.style.padding = '30px 0'; mysteryLi.style.pointerEvents = 'none'; mysteryLi.style.borderBottom = 'none'; mysteryLi.style.flexDirection = 'column'; mysteryLi.style.gap = '10px';
+                mysteryLi.innerHTML = `<span style="font-size:24px;">🔮</span><span>盲盒模式运行中... 下一首是未知的惊喜</span>`;
+                playlistPanelList.appendChild(mysteryLi);
+                return;
+            }
+
+            panelHeaderCount.innerText = playingList.length;
+            if (playingList.length === 0) { playlistPanelList.innerHTML = '<li style="justify-content:center;color:#888;">队列为空</li>'; return; }
+
+            playingList.forEach((song, index) => {
+                const li = document.createElement('li');
+                const isCurrentSong = index === currentPlayingIndex;
+                const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
+                if (isCurrentSong) li.classList.add('active');
+                const prefixIcon = isCurrentSong ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : '';
+                const vipTag = song.fee === 1 ? `<span class="vip-tag">VIP</span>` : '';
+                li.innerHTML = `<span class="panel-song-name">${prefixIcon}${song.name}${vipTag}</span><span class="panel-song-artist">${song.artist}</span>`;
+                li.onclick = () => { if (isCurrentSong) { if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); } else playSong(index); };
+                playlistPanelList.appendChild(li);
+            });
+        }
+
+        function scrollToCurrentSongInPanel() {
+            if (currentPlayingIndex === -1 || playingList.length === 0) return;
+            const lis = playlistPanelList.querySelectorAll('li');
+            if (lis[currentPlayingIndex]) lis[currentPlayingIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        clearPlaylistBtn.onclick = () => {
+            playingList = []; currentPlayingIndex = -1; 
+            audioPlayer.pause(); audioPlayer.src = ''; 
+            playPauseBtn.innerHTML = ICON_PLAY_LARGE; playPauseBtn.classList.remove('is-paused');
+            document.getElementById('currentSongName').innerText = 'MusicZ'; document.getElementById('currentArtist').innerText = '听你想听'; document.getElementById('albumCover').src = 'https://s1.music.126.net/style/web2/img/default/default_album.jpg';
+            document.getElementById('lyricList').innerHTML = '<li>欢迎使用MusicZ</li>'; parsedLyrics = []; document.getElementById('lyricList').style.transform = `translateY(0px)`;
+            progressBar.value = 0; updateProgressUI(); currentTimeText.innerText = '00:00'; durationText.innerText = '00:00';
+            
+            isBlindBoxMode = false; currentBlindBoxTag = ''; 
+            updatePlaylistBadge();
+            renderPlaylistPanel(); 
+            
+            if(currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) renderSearchEmptyUI();
+            else if (currentView === 'tabBlindBox') renderBlindBoxUI();
+            else renderList(listTitle.innerText, 'song'); 
+        };
+
+        // ================= 启动 =================
+        window.onload = async () => {
+            await syncLoginStatus(); 
+            fetchNewSongs();         
+        };
     </script>
 </body>
 </html>
