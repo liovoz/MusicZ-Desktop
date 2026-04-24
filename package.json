@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.8.1",
-  "description": "MusicZ - 旗舰版 (修复 私人推荐 拉取新歌的BUG)",
+  "version": "1.8.2",
+  "description": "MusicZ - 旗舰版 (修复 版本号显示BUG)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
