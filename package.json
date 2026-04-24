@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.8.0",
-  "description": "MusicZ - 旗舰版 (引入独立 About 控制舱与完全体 OTA 状态机)",
+  "version": "1.8.1",
+  "description": "MusicZ - 旗舰版 (修复 私人推荐 拉取新歌的BUG)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

@@ -40,11 +40,11 @@ let isSlotting = false;
 
 let preferredQuality = localStorage.getItem('mz_quality') || 'lossless';
 let currentActualQuality = preferredQuality; 
-const qualityNameMap = { 'standard': '标准', 'higher': '较高', 'exhigh': '极高', 'lossless': 'SQ无损', 'hires': 'Hi-Res' };
 
 let modeIdx = 0;
 let isDraggingProgress = false;
 
+// 【核心】：加入 hasMore 锁，控制无限滚动
 const viewDataCache = { tabNew: [], tabPlaylist: [], tabSearch: [], playlistDetail: [], tabBlindBox: [] };
 const pagination = { tabNew: { offset: 0, hasMore: true }, tabPlaylist: { offset: 0, hasMore: true }, tabSearch: { offset: 0, hasMore: true }, playlistDetail: { offset: 0, hasMore: true }};
 
@@ -109,6 +109,16 @@ function actualQualityDisplay(level) {
     return level === 'standard' ? '标准' : (level === 'exhigh' ? '极高' : (level === 'lossless' ? '无损' : '极清')); 
 }
 
+// 💥【新增核心工具】：终极去重过滤器
+function filterUniqueSongs(newSongs, existingSongs) {
+    const existingIds = new Set(existingSongs.map(s => s.id));
+    return newSongs.filter(song => {
+        if (existingIds.has(song.id)) return false;
+        existingIds.add(song.id); // 保证新数组内也没有重复
+        return true;
+    });
+}
+
 // ==========================================
 // 弹窗与 UI 反馈引擎
 // ==========================================
@@ -120,11 +130,8 @@ function showToast(message, isPersistent = false) {
     toast.classList.remove('show');
     void toast.offsetWidth; 
     toast.classList.add('show');
-    
     if (toastTimer) clearTimeout(toastTimer);
-    if (!isPersistent) {
-        toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 3500); 
-    }
+    if (!isPersistent) toastTimer = setTimeout(() => toast.classList.remove('show'), 3500); 
 }
 
 function showCustomAlert(message) {
@@ -193,8 +200,7 @@ if (window.electronAPI) {
                 
                 watchdogTimer = setTimeout(() => {
                     if (updateState === 'checking') {
-                        updateState = 'idle';
-                        renderAboutUI();
+                        updateState = 'idle'; renderAboutUI();
                         showToast('⏱️ 检查超时，星轨连接被阻断，请稍后再试');
                     }
                 }, 15000);
@@ -237,18 +243,15 @@ if (window.electronAPI) {
         if (watchdogTimer) clearTimeout(watchdogTimer);
         cachedUpdateInfo = info; updateState = 'available'; renderAboutUI();
     });
-    
     window.electronAPI.onUpdateNotAvailable(() => {
         if (watchdogTimer) clearTimeout(watchdogTimer);
         updateState = 'up-to-date'; renderAboutUI();
     });
-    
     window.electronAPI.onUpdateError((err) => {
         if (watchdogTimer) clearTimeout(watchdogTimer);
         showToast('⚠️ 检查或下载受阻，请确保网络畅通');
         updateState = 'idle'; renderAboutUI();
     });
-    
     window.electronAPI.onDownloadProgress((prog) => {
         if(updateState !== 'downloading') { updateState = 'downloading'; renderAboutUI(); }
         const percent = Math.floor(prog.percent || 0);
@@ -257,15 +260,11 @@ if (window.electronAPI) {
         updateProgressText.innerText = `正在接收数据：${percent}%`;
         updateSpeedText.innerText = speed > 1024 ? `${(speed/1024).toFixed(1)} MB/s` : `${speed} KB/s`;
     });
-    
     window.electronAPI.onUpdateDownloaded((info) => {
         updateState = 'downloaded'; renderAboutUI();
         showToast('✨ 新世代跃迁包已就绪，随时可以升华');
     });
-
-} else {
-    versionTag.style.cursor = 'default';
-}
+} else { versionTag.style.cursor = 'default'; }
 
 // ==========================================
 // 扫码登录引擎
@@ -809,8 +808,13 @@ async function fillPrivateReservoir() {
                 const pRes = await fetch(`${API_BASE_URL}/playlist/track/all?id=${p.id}&limit=50&cookie=${encodeURIComponent(getLocalCookie())}`);
                 const pData = await pRes.json(); newTracks = newTracks.concat(formatSongs(pData.songs, 'playlistDetail'));
             }
-            const history = getPlayHistory(); const currentIds = viewDataCache.tabNew.map(s => s.id);
-            let validTracks = newTracks.filter(s => !history.includes(s.id) && !currentIds.includes(s.id) && !privateReservoir.some(r=>r.id===s.id));
+            const history = getPlayHistory();
+            
+            // 💥【去重升级】：利用 filterUniqueSongs 剔除历史歌单、当前列表和缓冲池中的所有重复项
+            let validTracks = newTracks.filter(s => !history.includes(s.id));
+            validTracks = filterUniqueSongs(validTracks, viewDataCache.tabNew);
+            validTracks = filterUniqueSongs(validTracks, privateReservoir);
+
             privateReservoir = privateReservoir.concat(shuffleArray(validTracks));
         }
     } catch(e) {}
@@ -824,14 +828,26 @@ async function fetchNewSongs(isLoadMore = false) {
         if (cookie && !isLoadMore) {
             const res = await fetch(`${API_BASE_URL}/recommend/songs?cookie=${encodeURIComponent(cookie)}&t=${Date.now()}`);
             const data = await res.json();
-            viewDataCache.tabNew = formatSongs(data.data.dailySongs, 'recommend'); displayList = viewDataCache.tabNew; renderList('为你的私人定制推荐', 'song');
+            // 首屏获取也要执行绝对去重
+            viewDataCache.tabNew = filterUniqueSongs(formatSongs(data.data.dailySongs, 'recommend'), []); 
+            displayList = viewDataCache.tabNew; 
+            renderList('为你的私人定制推荐', 'song');
             fillPrivateReservoir(); 
         } else {
             const res = await fetch(`${API_BASE_URL}/personalized/newsong?limit=10&offset=${pagination.tabNew.offset}`);
-            const data = await res.json(); const fetchedSongs = formatSongs(data.result, 'newsong');
-            const newSongs = fetchedSongs.filter(song => !viewDataCache.tabNew.some(cached => cached.id === song.id));
-            if (newSongs.length === 0) { pagination.tabNew.hasMore = false; renderList('今日最热新歌', 'song', true, []); return; }
-            viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs]; displayList = viewDataCache.tabNew; renderList('今日最热新歌', 'song', isLoadMore, newSongs);
+            const data = await res.json(); 
+            const fetchedSongs = formatSongs(data.result, 'newsong');
+            
+            // 使用新去重方法
+            const newSongs = filterUniqueSongs(fetchedSongs, viewDataCache.tabNew);
+
+            if (newSongs.length === 0) { 
+                pagination.tabNew.hasMore = false; 
+                renderList('今日最热新歌', 'song', true, []); return; 
+            }
+            viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs]; 
+            displayList = viewDataCache.tabNew; 
+            renderList('今日最热新歌', 'song', isLoadMore, newSongs);
         }
     } catch (e) { listTitle.innerText = '加载失败'; }
 }
@@ -884,35 +900,72 @@ searchInput.onkeypress = e => { if(e.key === 'Enter') searchBtn.click(); };
 
 dataList.onscroll = () => { if (dataList.scrollHeight - dataList.scrollTop <= dataList.clientHeight + 20) loadMoreData(); };
 
+// 💥【核心修复】：无限滚动的防重叠机制
 async function loadMoreData() {
-    if (isFetching || currentView === 'tabBlindBox') return; isFetching = true;
+    if (isFetching || currentView === 'tabBlindBox') return; 
+    isFetching = true;
     try {
         if (currentView === 'tabNew') {
             if (getLocalCookie()) {
-                const loader = document.createElement('li'); loader.id = 'loadingMoreIndicator'; loader.className = 'loading-more'; loader.innerText = '正在加载更多...';
+                // 防线 1：如果已被标记为没有更多数据，立刻停止执行
+                if (!pagination.tabNew.hasMore) return; 
+                
+                // 防呆：确保当前列表中没有处于加载状态的元素
+                if (dataList.querySelector('.loading-more')) return;
+
+                const loader = document.createElement('li'); 
+                loader.id = 'loadingMoreIndicator'; loader.className = 'loading-more'; loader.innerText = '正在为您探索更多...';
                 dataList.appendChild(loader); dataList.scrollTop = dataList.scrollHeight;
+                
                 if (privateReservoir.length < 20) await fillPrivateReservoir();
-                loader.remove();
+                
+                const loaderEl = document.getElementById('loadingMoreIndicator');
+                if (loaderEl) loaderEl.remove();
+
                 if (privateReservoir.length > 0) {
-                    const chunk = privateReservoir.splice(0, 20); viewDataCache.tabNew = viewDataCache.tabNew.concat(chunk);
-                    displayList = viewDataCache.tabNew; renderList('为你的私人定制推荐', 'song', true, chunk); if (privateReservoir.length < 50) fillPrivateReservoir(); 
-                } else { const noMore = document.createElement('li'); noMore.className = 'no-more'; noMore.innerText = '- 正在为您探索更多宇宙边缘的声音 -'; dataList.appendChild(noMore); }
-            } else { await fetchNewSongs(true); }
+                    const chunk = privateReservoir.splice(0, 20); 
+                    // 拼接入列前，再次执行终极去重，坚决拒绝重复的音乐 ID
+                    const uniqueChunk = filterUniqueSongs(chunk, viewDataCache.tabNew);
+                    
+                    if (uniqueChunk.length > 0) {
+                        viewDataCache.tabNew = viewDataCache.tabNew.concat(uniqueChunk);
+                        displayList = viewDataCache.tabNew; 
+                        renderList('为你的私人定制推荐', 'song', true, uniqueChunk); 
+                    }
+                    if (privateReservoir.length < 50) fillPrivateReservoir(); 
+                } else { 
+                    // 防线 2：池子耗尽，打上断绝锁
+                    pagination.tabNew.hasMore = false; 
+                    // 物理视觉防呆：只允许列表中存在唯一的一句“结束语”
+                    if (!dataList.querySelector('.no-more')) {
+                        const noMore = document.createElement('li'); 
+                        noMore.className = 'no-more'; 
+                        noMore.innerText = '- 探索已达宇宙边缘，没有更多声音了 -'; 
+                        dataList.appendChild(noMore); 
+                    }
+                }
+            } else { 
+                if (!pagination.tabNew.hasMore) return;
+                await fetchNewSongs(true); 
+            }
         }
-        else if (currentView === 'tabPlaylist') await fetchHotPlaylists(true);
-        else if (currentView === 'tabSearch') await fetchSearch(true, lastSearchKeyword);
-        else if (currentView === 'playlistDetail') await fetchPlaylistDetail(currentPlaylistId, listTitle.innerText.replace('歌单内容: ', ''), true);
+        else if (currentView === 'tabPlaylist') {
+            if(pagination.tabPlaylist.hasMore) await fetchHotPlaylists(true);
+        }
+        else if (currentView === 'tabSearch') {
+            if(pagination.tabSearch.hasMore) await fetchSearch(true, lastSearchKeyword);
+        }
+        else if (currentView === 'playlistDetail') {
+            if(pagination.playlistDetail.hasMore) await fetchPlaylistDetail(currentPlaylistId, listTitle.innerText.replace('歌单内容: ', ''), true);
+        }
     } finally { isFetching = false; }
 }
 
 // ==========================================
-// 💥 盲盒引擎 (全新柔性软装重构版)
+// 盲盒引擎 (保持原有柔性软装重构逻辑)
 // ==========================================
 function renderBlindBoxUI() {
-    // 1. 尝试获取现有的盲盒容器
     let container = dataList.querySelector('.blind-box-container');
-    
-    // 2. 如果是第一次进入（容器不存在），才执行一次全量的“硬骨架渲染”
     if (!container) {
         dataList.innerHTML = `
             <div class="blind-box-container">
@@ -927,7 +980,6 @@ function renderBlindBoxUI() {
         rollBtn.onclick = handleBlindBoxRoll;
     }
 
-    // 3. 执行 DOM 局部“软更新”，避免浏览器重绘触发全屏闪烁
     const icon = document.getElementById('blindBoxIcon');
     const title = document.getElementById('blindBoxTitle');
     const desc = document.getElementById('blindBoxDesc');
@@ -1015,7 +1067,6 @@ async function handleBlindBoxRoll() {
                 playingList = shuffleArray(fetchedSongs).slice(0, 50); 
                 viewDataCache.tabBlindBox = playingList;
                 
-                // 💥 告别闪烁：如果是盲盒页面，执行精准的局部软更新！
                 if (currentView === 'tabBlindBox') { renderBlindBoxUI(); }
                 if(playingList.length > 0) playSong(0);
             } else { 
