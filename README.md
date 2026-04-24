@@ -41,7 +41,7 @@ MusicZ 致力于提供最纯粹的 Windows 桌面端体验。
 
 ```bash
 # 1. 克隆仓库
-git clone [https://github.com/你的用户名/MusicZ-Desktop.git](https://github.com/你的用户名/MusicZ-Desktop.git)
+git clone [https://github.com/liovoz/MusicZ-Desktop.git](https://github.com/liovoz/MusicZ-Desktop.git)
 
 # 2. 进入项目目录
 cd MusicZ-Desktop
