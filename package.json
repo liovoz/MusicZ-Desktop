@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.6.6",
-  "description": "MusicZ - 旗舰版 (修复初始进度条越界拖拽与幽灵记忆 Bug)",
+  "version": "1.7.0",
+  "description": "MusicZ - 旗舰版 (工程架构重组版：实现 HTML/CSS/JS 彻底解耦)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
