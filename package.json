@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.5.5",
-  "description": "MusicZ - 旗舰版 (Toast 提示位置视觉平衡优化)",
+  "version": "1.6.6",
+  "description": "MusicZ - 旗舰版 (修复初始进度条越界拖拽与幽灵记忆 Bug)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -23,7 +23,8 @@
     ],
     "asar": false,
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "icon.ico"
     },
     "nsis": {
       "oneClick": false,

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MusicZ 专属播放器 1.5.5</title>
+    <title>MusicZ 专属播放器 1.6.6</title>
     <style>
         /* ====== 桌面端原生沉浸式布局 ====== */
         body { 
@@ -12,8 +12,8 @@
         .player-container { width: 100vw; height: 100vh; box-sizing: border-box; padding: 25px 30px; display: flex; flex-direction: column; position: relative; }
         .main-content { display: flex; gap: 30px; flex: 1; overflow: hidden; }
 
-        /* ====== 左侧面板与登录 UI ====== */
-        .left-panel { width: 260px; display: flex; flex-direction: column; align-items: center; }
+        /* ====== 左侧面板 ====== */
+        .left-panel { width: 260px; display: flex; flex-direction: column; align-items: center; position: relative; }
         .user-profile { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 15px; background: rgba(255,255,255,0.6); border-radius: 12px; margin-bottom: 25px; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .user-profile:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; background: #eee; object-fit: cover; }
@@ -22,13 +22,14 @@
         .user-name { font-size: 13px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-status { font-size: 11px; color: #999; margin-top: 2px; }
 
+        .version-tag { font-size: 11px; color: #ccc; cursor: pointer; transition: 0.2s; margin-top: auto; padding-bottom: 5px; user-select: none; }
+        .version-tag:hover { color: #ec4141; transform: scale(1.05); }
+
         .cover-img { width: 180px; height: 180px; border-radius: 15px; object-fit: cover; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin-bottom: 10px; }
         .current-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
-        .current-artist { font-size: 14px; color: #777; margin-bottom: 15px; }
-        .mode-btn { padding: 6px 15px; border-radius: 15px; border: 1px solid #ccc; background-color: transparent; color: #555; cursor: pointer; font-size: 12px; transition: 0.2s; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; }
-        .mode-btn:hover { background-color: #e9eaec; }
+        .current-artist { font-size: 14px; color: #777; margin-bottom: 20px; } 
 
-        .lyric-box { flex: 1; width: 100%; overflow: hidden; position: relative; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%); }
+        .lyric-box { flex: 1; width: 100%; overflow: hidden; position: relative; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); margin-bottom: 10px;}
         .lyric-list { list-style: none; padding: 0; margin: 0; transition: transform 0.4s ease-out; }
         .lyric-list li { text-align: center; color: #888; font-size: 14px; line-height: 1.6; padding: 8px 10px; transition: 0.3s; word-break: break-word; }
         .lyric-list li.active { color: #ec4141; font-size: 16px; font-weight: bold; }
@@ -50,7 +51,7 @@
         .tab-btn.active { color: #ec4141; font-weight: bold; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -7px; left: 10%; width: 80%; height: 3px; background-color: #ec4141; border-radius: 3px; }
 
-        .list-header { font-size: 13px; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .list-header { font-size: 13px; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .back-btn { display: none; background: none; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; padding: 2px 8px; color: #555; font-size: 12px; }
         .back-btn:hover { background: #eee; }
 
@@ -98,32 +99,15 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ====== 【重塑回归】居中对齐的幽灵轻提示 (Toast) UI ====== */
+        /* ====== 居中幽灵轻提示 (Toast) UI ====== */
         .toast-notification {
-            position: absolute; 
-            bottom: 100px; 
-            left: 50%; /* 回归绝对水平居中 */
-            transform: translateX(-50%) translateY(20px); /* 初始位置轻微下沉 */
-            background: rgba(255, 255, 255, 0.9);
-            color: #444;
-            padding: 10px 24px;
-            border-radius: 30px; /* 更圆润的胶囊形 */
-            font-size: 13px;
-            font-weight: 600;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            pointer-events: none; 
-            z-index: 10000;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); 
+            background: rgba(255, 255, 255, 0.9); color: #444; padding: 10px 24px; border-radius: 30px; 
+            font-size: 13px; font-weight: 600; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            pointer-events: none; z-index: 10000; opacity: 0; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .toast-notification.show {
-            opacity: 1;
-            /* 必须同时保留 translateX 以免动画过程水平跳动 */
-            transform: translateX(-50%) translateY(0); 
-        }
+        .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         /* ====== 底部控制栏与音质组件 ====== */
         .bottom-controls { display: flex; align-items: center; margin-top: 20px; padding: 10px 20px; background-color: #ffffff; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); height: 60px; box-sizing: border-box; z-index: 10; position: relative;}
@@ -140,12 +124,14 @@
         .progress-container { flex: 1; display: flex; align-items: center; gap: 15px; margin-right: 25px; }
         .time-text { font-size: 12px; color: #888; font-family: monospace; width: 40px; text-align: center; letter-spacing: 0.5px; }
         .progress-bar-wrapper { flex: 1; display: flex; align-items: center; height: 20px; }
+        
+        /* 进度条样式 */
         input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: linear-gradient(to right, #ec4141 var(--progress, 0%), #e0e0e0 var(--progress, 0%)); border-radius: 2px; cursor: pointer; outline: none; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: transparent; border-radius: 2px; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ec4141; margin-top: -4px; box-shadow: 0 1px 5px rgba(0,0,0,0.3); transition: transform 0.2s; }
         input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
         
-        .right-ctrl-group { display: flex; align-items: center; gap: 10px; position: relative; }
+        .right-ctrl-group { display: flex; align-items: center; gap: 8px; position: relative; }
         .quality-wrapper { position: relative; display: flex; align-items: center; }
         .quality-toggle-btn { background: #fff; border: 1px solid #ddd; border-radius: 15px; padding: 0 10px; height: 28px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; transition: 0.2s; user-select: none; }
         .quality-toggle-btn:hover { border-color: #ec4141; color: #ec4141; background: #fcebeb;}
@@ -157,9 +143,9 @@
         .quality-panel-list li { padding: 12px 20px; cursor: pointer; font-size: 13px; color: #444; transition: 0.1s; text-align: center; }
         .quality-panel-list li:hover { background-color: #fcebeb; color: #ec4141; }
         .quality-panel-list li.active { color: #ec4141; font-weight: bold; background-color: rgba(236, 65, 65, 0.05); }
-        .quality-panel-list li span { font-size: 10px; color: #999; margin-left: 4px; font-weight: normal; }
 
-        .playlist-toggle-btn { background: #f9f9f9; border: 1px solid #eee; border-radius: 20px; padding: 0 16px; height: 34px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; user-select: none; box-sizing: border-box; }
+        .mode-ctrl-btn { width: 34px; height: 34px; color: #666; }
+        .playlist-toggle-btn { background: #f9f9f9; border: 1px solid #eee; border-radius: 20px; padding: 0 14px; height: 34px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; user-select: none; box-sizing: border-box; }
         .playlist-toggle-btn:hover { background: #fcebeb; color: #ec4141; border-color: rgba(236,65,65,0.2); }
         #playlistCountBadge { font-size: 14px; font-weight: 600; line-height: 1; transform: translateY(1px); }
 
@@ -188,7 +174,7 @@
         .custom-alert-icon { font-size: 45px; margin-bottom: 15px; }
         .custom-alert-message { font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.6; font-weight: bold; white-space: pre-line; }
         .custom-alert-btn { background: #ec4141; color: white; border: none; padding: 10px 35px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 65, 65, 0.3); transition: 0.2s; }
-        .custom-alert-btn:hover { transform: scale(1.05); background: #d73a3a; box-shadow: 0 6px 20px rgba(236, 65, 65, 0.4); }
+        .custom-alert-btn:hover { transform: scale(1.05); background: #d73a3a; }
 
         /* ====== 扫码登录弹窗 UI ====== */
         .login-modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.2); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: none; justify-content: center; align-items: center; z-index: 10000; opacity: 0; transition: opacity 0.3s; }
@@ -222,6 +208,18 @@
             </div>
         </div>
 
+        <div id="updateModal" class="custom-alert-overlay">
+            <div class="custom-alert-box">
+                <div class="custom-alert-icon">🚀</div>
+                <div style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px;">发现新声音</div>
+                <div id="updateModalMessage" class="custom-alert-message" style="font-weight: normal; font-size: 13px; margin-bottom: 25px;">MusicZ 最新版本已经为你准备好了！</div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="updateCancelBtn" class="custom-alert-btn" style="background: #f0f0f0; color: #555; box-shadow: none;">稍后再说</button>
+                    <button id="updateOkBtn" class="custom-alert-btn">立即重启并升华</button>
+                </div>
+            </div>
+        </div>
+
         <div id="loginModal" class="login-modal">
             <div class="login-card">
                 <span id="closeLogin" class="close-login">✕</span>
@@ -239,11 +237,14 @@
                     <img id="userAvatar" class="user-avatar" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2RkZGRkZCI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==">
                     <div class="user-info"><div class="user-name-wrapper"><span id="userName" class="user-name">点击登录账号</span><span id="userVipTag" class="vip-tag" style="display:none;">VIP</span></div><span id="userStatus" class="user-status">解锁私人无限电台</span></div>
                 </div>
+
                 <img id="albumCover" src="https://s1.music.126.net/style/web2/img/default/default_album.jpg" class="cover-img">
                 <div id="currentSongName" class="current-title">MusicZ</div>
                 <div id="currentArtist" class="current-artist">听你想听</div>
-                <button id="modeBtn" class="mode-btn">🔁 列表循环</button>
+                
                 <div class="lyric-box"><ul class="lyric-list" id="lyricList"><li>欢迎使用MusicZ</li></ul></div>
+                
+                <div id="versionTag" class="version-tag">MusicZ v1.6.6</div>
             </div>
 
             <div class="right-panel">
@@ -280,19 +281,23 @@
             </div>
             <div class="progress-container">
                 <span class="time-text" id="currentTimeText">00:00</span>
-                <div class="progress-bar-wrapper"><input type="range" id="progressBar" min="0" value="0" step="0.1"></div>
+                <div class="progress-bar-wrapper"><input type="range" id="progressBar" min="0" max="0" value="0" step="0.1"></div>
                 <span class="time-text" id="durationText">00:00</span>
             </div>
             
             <div class="right-ctrl-group">
+                <button id="modeBtn" class="ctrl-btn mode-ctrl-btn" title="列表循环">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                </button>
+
                 <div class="quality-wrapper">
                     <button id="qualityBtn" class="quality-toggle-btn" title="切换音质">标准</button>
                     <div id="qualityPanel" class="quality-panel">
                         <ul class="quality-panel-list" id="qualityList">
-                            <li data-level="hires">Hi-Res<span>(极清)</span></li>
-                            <li data-level="lossless">SQ无损<span>(超清)</span></li>
-                            <li data-level="exhigh">极高<span>(320k)</span></li>
-                            <li data-level="standard">标准<span>(128k)</span></li>
+                            <li data-level="hires">Hi-Res</li>
+                            <li data-level="lossless">SQ无损</li>
+                            <li data-level="exhigh">极高</li>
+                            <li data-level="standard">标准</li>
                         </ul>
                     </div>
                 </div>
@@ -317,6 +322,12 @@
         const ICON_PAUSE_LARGE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
         const ICON_PLAY_SMALL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
         const ICON_PAUSE_SMALL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+        const MODE_ICONS = {
+            loop: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>',
+            single: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><text x="10.5" y="15.5" font-size="7" font-weight="bold" fill="currentColor">1</text></svg>',
+            random: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>'
+        };
 
         function getLocalCookie() { return localStorage.getItem('ncm_cookie') || ''; }
         function getPlayHistory() { return JSON.parse(localStorage.getItem('mz_history') || '[]'); }
@@ -380,20 +391,58 @@
         const qualityList = document.getElementById('qualityList');
 
         let toastTimer = null;
-        function showToast(message) {
+        function showToast(message, isPersistent = false) {
             const toast = document.getElementById('toastNotification');
             const highlighted = message.replace(/【(.*?)】/g, '<span style="color: #ec4141;">$1</span>');
             toast.innerHTML = highlighted;
-            
             toast.classList.remove('show');
             void toast.offsetWidth; 
             toast.classList.add('show');
-            
             if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3500); 
+            if (!isPersistent) {
+                toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 3500); 
+            }
         }
+
+        const versionTag = document.getElementById('versionTag');
+        const updateModal = document.getElementById('updateModal');
+        const updateModalMessage = document.getElementById('updateModalMessage');
+        const updateCancelBtn = document.getElementById('updateCancelBtn');
+        const updateOkBtn = document.getElementById('updateOkBtn');
+
+        if (window.electronAPI) {
+            versionTag.onclick = () => {
+                showToast('🔄 正在连接星轨... 搜寻新版本中', true);
+                window.electronAPI.checkForUpdates();
+            };
+            window.electronAPI.onUpdateNotAvailable(() => { showToast('✨ 当前已是宇宙最新版本，无需升级'); });
+            window.electronAPI.onUpdateError((err) => { showToast('⚠️ 检查受阻，请检查网络环境后重试'); });
+            window.electronAPI.onUpdateDownloaded((info) => {
+                document.getElementById('toastNotification').classList.remove('show');
+                updateModalMessage.innerText = `MusicZ 最新代号 ${info.version || ''} 已经准备就绪！\n是否立即重启跃迁？`;
+                updateModal.style.display = 'flex'; updateModal.offsetHeight; updateModal.classList.add('show');
+            });
+            updateCancelBtn.onclick = () => {
+                updateModal.classList.remove('show');
+                setTimeout(() => { if(!updateModal.classList.contains('show')) updateModal.style.display = 'none'; }, 300);
+            };
+            updateOkBtn.onclick = () => { updateOkBtn.innerText = '正在升华...'; window.electronAPI.quitAndInstall(); };
+        } else {
+            versionTag.style.cursor = 'default';
+        }
+
+        const PLAY_MODES = ['loop', 'single', 'random']; 
+        const MODE_TEXTS = { loop: '列表循环', single: '单曲循环', random: '随机播放' };
+        let modeIdx = 0;
+        const modeBtn = document.getElementById('modeBtn');
+
+        modeBtn.onclick = function() {
+            modeIdx = (modeIdx + 1) % PLAY_MODES.length;
+            const currentMode = PLAY_MODES[modeIdx];
+            this.innerHTML = MODE_ICONS[currentMode];
+            this.title = MODE_TEXTS[currentMode];
+            showToast(`已切换至【${MODE_TEXTS[currentMode]}】`);
+        };
 
         qualityBtn.onclick = (e) => {
             e.stopPropagation();
@@ -405,7 +454,6 @@
                 qualityPanel.style.display = 'flex';
                 qualityPanel.offsetHeight;
                 qualityPanel.classList.add('show');
-                
                 Array.from(qualityList.children).forEach(li => {
                     if (li.dataset.level === currentActualQuality) li.classList.add('active');
                     else li.classList.remove('active');
@@ -417,24 +465,22 @@
             const targetLi = e.target.closest('li');
             if (!targetLi) return;
             const targetLevel = targetLi.dataset.level;
-            
             preferredQuality = targetLevel;
             currentActualQuality = targetLevel; 
             localStorage.setItem('mz_quality', targetLevel);
-            
             qualityPanel.classList.remove('show');
             setTimeout(() => qualityPanel.style.display = 'none', 200);
-            
             if (currentPlayingIndex !== -1 && playingList[currentPlayingIndex]) {
                 const isPlaying = !audioPlayer.paused;
                 const currentPos = audioPlayer.currentTime;
                 playSong(currentPlayingIndex, currentPos, isPlaying); 
             } else {
-                qualityBtn.innerText = qualityNameMap[currentActualQuality];
+                qualityBtn.innerText = actualQualityDisplay(currentActualQuality);
                 qualityBtn.className = 'quality-toggle-btn ' + (currentActualQuality === 'lossless' || currentActualQuality === 'hires' ? 'is-sq' : '');
-                qualityBtn.title = '切换音质';
             }
         };
+
+        function actualQualityDisplay(level) { return level === 'standard' ? '标准' : (level === 'exhigh' ? '极高' : (level === 'lossless' ? '无损' : '极清')); }
 
         playlistToggleBtn.onclick = (e) => {
             e.stopPropagation(); 
@@ -454,9 +500,7 @@
         };
 
         document.body.addEventListener('click', (e) => {
-            if (playlistPanel.classList.contains('show') && !playlistPanel.contains(e.target) && !playlistToggleBtn.contains(e.target)) {
-                closePlaylistPanel();
-            }
+            if (playlistPanel.classList.contains('show') && !playlistPanel.contains(e.target) && !playlistToggleBtn.contains(e.target)) closePlaylistPanel();
             if (qualityPanel.classList.contains('show') && !qualityPanel.contains(e.target) && !qualityBtn.contains(e.target)) {
                 qualityPanel.classList.remove('show');
                 setTimeout(() => qualityPanel.style.display = 'none', 200);
@@ -472,6 +516,53 @@
             if (isBlindBoxMode) { playlistCountBadge.innerText = '∞'; } else { playlistCountBadge.innerText = playingList.length; }
         }
 
+        function renderPlaylistPanel() {
+            if (isBlindBoxMode) {
+                panelHeaderCount.innerText = '∞';
+                playlistPanelList.innerHTML = '<li class="active" style="justify-content:center;"><div class="panel-song-name" style="color:#ec4141;">🎧 正在接收异次元电波...</div></li>';
+                return;
+            }
+            
+            panelHeaderCount.innerText = playingList.length;
+            if (playingList.length === 0) {
+                playlistPanelList.innerHTML = '<li style="justify-content:center;color:#888;">队列为空</li>';
+                return;
+            }
+            
+            playlistPanelList.innerHTML = '';
+            playingList.forEach((song, index) => {
+                const li = document.createElement('li');
+                const isCurrent = index === currentPlayingIndex;
+                const isAudioPlaying = isCurrent && !audioPlayer.paused;
+                const prefixIcon = isCurrent ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : '';
+                const vipTag = (song.fee === 1 || song.fee === 4) ? `<span class="vip-tag">VIP</span>` : '';
+                let qualityTag = song.hr ? `<span class="hr-tag">Hi-Res</span>` : (song.sq ? `<span class="sq-tag">SQ</span>` : '');
+                
+                li.innerHTML = `<div class="panel-song-name">${prefixIcon}${song.name}${qualityTag}${vipTag}</div><div class="panel-song-artist">${song.artist}</div>`;
+                if (isCurrent) li.classList.add('active');
+                
+                li.onclick = () => {
+                    if (isCurrent) {
+                        if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
+                    } else {
+                        playSong(index);
+                    }
+                };
+                playlistPanelList.appendChild(li);
+            });
+        }
+
+        function scrollToCurrentSongInPanel() {
+            if (currentPlayingIndex === -1 || playingList.length === 0 || isBlindBoxMode) return;
+            setTimeout(() => {
+                const activeLi = playlistPanelList.querySelector('li.active');
+                if (activeLi) {
+                    const offset = activeLi.offsetTop - (playlistPanelList.clientHeight / 2) + (activeLi.clientHeight / 2);
+                    playlistPanelList.scrollTo({ top: offset, behavior: 'smooth' });
+                }
+            }, 50); 
+        }
+
         function showCustomConfirm(message, onConfirm) {
             document.getElementById('customConfirmMessage').innerText = message;
             const confirmOverlay = document.getElementById('customConfirm');
@@ -481,8 +572,7 @@
         }
 
         function hideCustomConfirm() {
-            const confirmOverlay = document.getElementById('customConfirm');
-            confirmOverlay.classList.remove('show');
+            const confirmOverlay = document.getElementById('customConfirm'); confirmOverlay.classList.remove('show');
             setTimeout(() => { if(!confirmOverlay.classList.contains('show')) confirmOverlay.style.display = 'none'; }, 300);
         }
 
@@ -535,7 +625,7 @@
             const cookie = getLocalCookie();
             if (!cookie) {
                 currentActualQuality = preferredQuality;
-                qualityBtn.innerText = qualityNameMap[currentActualQuality];
+                qualityBtn.innerText = actualQualityDisplay(currentActualQuality);
                 qualityBtn.className = 'quality-toggle-btn ' + (currentActualQuality === 'lossless' || currentActualQuality === 'hires' ? 'is-sq' : '');
                 return;
             }
@@ -548,9 +638,8 @@
                     if (data.data.profile.vipType > 0) document.getElementById('userVipTag').style.display = 'inline-block';
                 } else { localStorage.removeItem('ncm_cookie'); }
             } catch (e) { localStorage.removeItem('ncm_cookie'); }
-            
             currentActualQuality = preferredQuality;
-            qualityBtn.innerText = qualityNameMap[currentActualQuality];
+            qualityBtn.innerText = actualQualityDisplay(currentActualQuality);
             qualityBtn.className = 'quality-toggle-btn ' + (currentActualQuality === 'lossless' || currentActualQuality === 'hires' ? 'is-sq' : '');
         }
 
@@ -574,7 +663,6 @@
             return rawList.map(item => {
                 let song = { id: item.id, name: item.name, type: 'song' };
                 let hasSq = false; let hasHr = false;
-                
                 if (source === 'cloudsearch' || source === 'playlistDetail' || source === 'recommend') {
                     song.artist = item.ar ? item.ar[0].name : '未知'; song.cover = item.al ? item.al.picUrl : ''; song.fee = item.fee || 0; 
                     hasSq = !!item.sq; hasHr = !!item.hr;
@@ -598,14 +686,11 @@
             document.getElementById(tabId).classList.add('active');
             backBtn.style.display = 'none'; 
             currentView = tabId;
-            
             const dataListEl = document.getElementById('dataList');
             if(tabId === 'tabBlindBox') {
-                document.getElementById('listHeaderContainer').style.display = 'none';
-                dataListEl.style.overflowY = 'hidden'; 
+                document.getElementById('listHeaderContainer').style.display = 'none'; dataListEl.style.overflowY = 'hidden'; 
             } else {
-                document.getElementById('listHeaderContainer').style.display = 'flex';
-                dataListEl.style.overflowY = 'auto'; 
+                document.getElementById('listHeaderContainer').style.display = 'flex'; dataListEl.style.overflowY = 'auto'; 
             }
         }
 
@@ -613,36 +698,26 @@
             switchTab('tabNew');
             if (viewDataCache.tabNew.length > 0) { displayList = viewDataCache.tabNew; renderList(getLocalCookie() ? '为你的私人定制推荐' : '今日最热新歌', 'song'); } else fetchNewSongs();
         };
-
         document.getElementById('tabPlaylist').onclick = () => {
             switchTab('tabPlaylist');
             if (viewDataCache.tabPlaylist.length > 0) { displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist'); } else fetchHotPlaylists();
         };
-
-        document.getElementById('tabBlindBox').onclick = () => {
-            switchTab('tabBlindBox');
-            renderBlindBoxUI();
-        };
-
+        document.getElementById('tabBlindBox').onclick = () => { switchTab('tabBlindBox'); renderBlindBoxUI(); };
         document.getElementById('tabSearch').onclick = () => {
             switchTab('tabSearch');
             if (viewDataCache.tabSearch.length > 0) { displayList = viewDataCache.tabSearch; renderList(`"${lastSearchKeyword}" 的探索结果`, 'song'); } else renderSearchEmptyUI();
         };
 
         function renderSearchEmptyUI() {
-            listTitle.innerText = '全网探索广场';
-            displayList = []; 
-            pagination.tabSearch.hasMore = false; 
-            
+            listTitle.innerText = '全网探索广场'; displayList = []; pagination.tabSearch.hasMore = false; 
             dataList.style.overflowY = 'hidden'; 
-            dataList.innerHTML = `<div class="empty-search-container"><div class="empty-search-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div><div class="empty-search-title">在这里，发现你想听的任何声音</div><div class="empty-search-desc">在上方输入歌曲名、歌手名或专辑名<br>敲击回车键，立即开始你的音乐探索。</div></div>`;
+            dataList.innerHTML = `<div class="empty-search-container"><div class="empty-search-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div><div class="empty-search-title">在这里，发现你想听的任何声音</div><div class="empty-search-desc">在上方输入歌曲名、歌手名或专辑名<br>敲击回车键，立即开始你的音乐探索。</div></div>`;
         }
 
         function renderBlindBoxUI() {
             let containerHTML = '';
             if (isBlindBoxMode && playingList.length > 0) {
-                const isPaused = audioPlayer.paused;
-                const iconClass = isPaused ? '' : 'icon-playing';
+                const iconClass = audioPlayer.paused ? '' : 'icon-playing';
                 containerHTML = `
                     <div class="blind-box-container">
                         <div class="blind-box-icon ${iconClass}">🎧</div>
@@ -663,8 +738,8 @@
                     </div>
                 `;
             }
-            
             dataList.innerHTML = containerHTML;
+            
             const rollBtn = document.getElementById('rollBtn');
             if (cdRemaining > 0) {
                 rollBtn.classList.add('disabled');
@@ -673,24 +748,19 @@
             rollBtn.onclick = handleBlindBoxRoll;
         }
 
-        const blindBoxTags = ["华语", "欧美", "日语", "韩语", "流行", "摇滚", "民谣", "电子", "舞曲", "说唱", "轻音乐", "爵士", "乡村", "R&B/Soul", "古典", "民族", "英伦", "金属", "朋克", "蓝调", "雷鬼", "拉丁", "另类/独立", "New Age", "古风", "后摇", "Bossa Nova"];
-
         async function handleBlindBoxRoll() {
-            if (cdRemaining > 0 || isSlotting) return;
-            isSlotting = true;
-            isBlindBoxMode = true; 
-
-            const rollBtn = document.getElementById('rollBtn');
+            if (cdRemaining > 0 || isSlotting) return; 
+            isSlotting = true; isBlindBoxMode = true; 
+            
             const icon = document.querySelector('.blind-box-icon');
             const title = document.querySelector('.blind-box-title');
             
             if(title) title.innerText = '正在调配惊喜...';
-            if(icon) {
-                icon.innerText = '🎲';
-                icon.classList.remove('icon-playing');
-                icon.classList.add('icon-spinning'); 
-            }
-
+            if(icon) { icon.innerText = '🎲'; icon.classList.remove('icon-playing'); icon.classList.add('icon-spinning'); }
+            
+            const blindBoxTags = ["华语", "欧美", "日语", "韩语", "流行", "摇滚", "民谣", "电子", "舞曲", "说唱", "轻音乐", "爵士", "乡村", "R&B/Soul", "古典", "民族", "英伦", "金属", "朋克", "蓝调", "雷鬼", "拉丁", "另类/独立", "New Age", "古风", "后摇", "Bossa Nova"];
+            
+            const rollBtn = document.getElementById('rollBtn');
             cdRemaining = 10;
             rollBtn.classList.add('disabled');
             cdTimer = setInterval(() => {
@@ -714,7 +784,7 @@
             setTimeout(async () => {
                 clearInterval(slotTimer);
                 const finalTag = blindBoxTags[Math.floor(Math.random() * blindBoxTags.length)];
-                currentBlindBoxTag = finalTag; 
+                currentBlindBoxTag = finalTag;
                 
                 const st = document.getElementById('slotMachineText');
                 if(st) {
@@ -732,20 +802,18 @@
                         const reqParam = cookie ? `&cookie=${encodeURIComponent(cookie)}` : '';
                         const trackRes = await fetch(`${API_BASE_URL}/playlist/track/all?id=${randomPl.id}&limit=100${reqParam}`);
                         const trackData = await trackRes.json();
-
+                        
                         let fetchedSongs = formatSongs(trackData.songs, 'playlistDetail');
                         const history = getPlayHistory();
                         
                         fetchedSongs = fetchedSongs.filter(s => !history.includes(s.id));
-                        fetchedSongs = shuffleArray(fetchedSongs).slice(0, 50); 
+                        playingList = shuffleArray(fetchedSongs).slice(0, 50); 
                         
-                        viewDataCache.tabBlindBox = fetchedSongs;
-                        playingList = viewDataCache.tabBlindBox; 
+                        viewDataCache.tabBlindBox = playingList;
                         
                         if (currentView === 'tabBlindBox') { renderBlindBoxUI(); }
                         if(playingList.length > 0) playSong(0);
-
-                    } else { 
+                    } else {
                         if(document.querySelector('.blind-box-title')) document.querySelector('.blind-box-title').innerText = '电波干扰，没有找到该标签歌曲'; 
                         if(icon) icon.classList.remove('icon-spinning');
                     }
@@ -753,82 +821,36 @@
                     if(document.querySelector('.blind-box-title')) document.querySelector('.blind-box-title').innerText = '网络断开，请重试'; 
                     if(icon) icon.classList.remove('icon-spinning');
                 }
-                
                 isSlotting = false;
-            }, 1500);
+            }, 1200);
         }
 
         function renderList(title, type, isAppend = false, newData = []) {
-            if (currentView !== 'tabBlindBox') {
-                dataList.style.overflowY = 'auto'; 
-            }
-            
+            if (currentView !== 'tabBlindBox') dataList.style.overflowY = 'auto'; 
             const prevScrollTop = dataList.scrollTop;
-            
-            if (!isAppend) {
-                listTitle.innerText = title;
-                dataList.innerHTML = '';
-                if (displayList.length === 0) {
-                    dataList.innerHTML = '<li style="justify-content:center;color:#888;">暂无数据</li>';
-                    return;
-                }
-            } else {
-                const loader = document.getElementById('loadingMoreIndicator');
-                if (loader) loader.remove();
-            }
-
+            if (!isAppend) { listTitle.innerText = title; dataList.innerHTML = ''; if (displayList.length === 0) { dataList.innerHTML = '<li style="justify-content:center;color:#888;">暂无数据</li>'; return; } }
             const dataToRender = isAppend ? newData : displayList;
-
             dataToRender.forEach((item) => {
                 const li = document.createElement('li');
                 if (item.type === 'song') {
                     const isCurrentSong = playingList.length > 0 && playingList[currentPlayingIndex] && playingList[currentPlayingIndex].id === item.id;
                     const isAudioPlaying = isCurrentSong && !audioPlayer.paused;
                     const icon = isCurrentSong ? (isAudioPlaying ? ICON_PAUSE_SMALL : ICON_PLAY_SMALL) : ICON_PLAY_SMALL;
-                    const iconColorStyle = isCurrentSong ? 'color: inherit;' : 'color: #ccc;'; 
-                    
                     const vipTag = (item.fee === 1 || item.fee === 4) ? `<span class="vip-tag">VIP</span>` : '';
-                    let qualityTag = '';
-                    if (item.hr) qualityTag = `<span class="hr-tag">Hi-Res</span>`;
-                    else if (item.sq) qualityTag = `<span class="sq-tag">SQ</span>`;
-
-                    li.innerHTML = `
-                        <img src="${item.cover}?param=50y50" class="item-cover">
-                        <div class="item-info">
-                            <span class="item-name">${item.name}${qualityTag}${vipTag}</span>
-                            <span class="item-sub">${item.artist}</span>
-                        </div>
-                        <span class="list-play-icon" style="${iconColorStyle} display: flex; align-items: center;">${icon}</span>
-                    `;
+                    let qTag = item.hr ? `<span class="hr-tag">Hi-Res</span>` : (item.sq ? `<span class="sq-tag">SQ</span>` : '');
+                    
+                    li.innerHTML = `<img src="${item.cover}?param=50y50" class="item-cover"><div class="item-info"><span class="item-name">${item.name}${qTag}${vipTag}</span><span class="item-sub">${item.artist}</span></div><span class="list-play-icon" style="${isCurrentSong?'color:inherit;':'color:#ccc;'} display:flex;">${icon}</span>`;
+                    
                     if(isCurrentSong) li.classList.add('playing-now');
                     
-                    li.onclick = () => {
-                        isBlindBoxMode = false; 
-                        playingList = [...displayList].filter(i => i.type === 'song');
-                        const newIdx = playingList.findIndex(s => s.id === item.id);
-                        if (isCurrentSong) { if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); } else playSong(newIdx);
-                    };
+                    li.onclick = () => { isBlindBoxMode = false; playingList = [...displayList].filter(i => i.type === 'song'); const newIdx = playingList.findIndex(s => s.id === item.id); if (isCurrentSong) { if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); } else playSong(newIdx); };
                 } else {
-                    li.innerHTML = `
-                        <img src="${item.cover}?param=50y50" class="item-cover">
-                        <div class="item-info"><span class="item-name">${item.name}</span><span class="item-sub">推荐歌单</span></div><span>➡️</span>
-                    `;
+                    li.innerHTML = `<img src="${item.cover}?param=50y50" class="item-cover"><div class="item-info"><span class="item-name">${item.name}</span><span class="item-sub">推荐歌单</span></div><span>➡️</span>`;
                     li.onclick = () => fetchPlaylistDetail(item.id, item.name);
                 }
                 dataList.appendChild(li);
             });
-
             if (!isAppend) dataList.scrollTop = prevScrollTop;
-            
-            if (currentView !== 'tabBlindBox' && pagination[currentView] && !pagination[currentView].hasMore) {
-                if(!document.getElementById('noMoreIndicator')) {
-                    const noMore = document.createElement('li');
-                    noMore.id = 'noMoreIndicator';
-                    noMore.className = 'no-more';
-                    noMore.innerText = '- 已经到底啦 -';
-                    dataList.appendChild(noMore);
-                }
-            }
         }
 
         function updateListPlayState() {
@@ -836,7 +858,6 @@
             const lis = dataList.querySelectorAll('li');
             lis.forEach((li, index) => {
                 if (li.id === 'loadingMoreIndicator' || li.id === 'noMoreIndicator') return;
-                
                 const item = displayList[index];
                 if (!item || item.type !== 'song') return;
 
@@ -928,42 +949,21 @@
         }
 
         async function fetchNewSongs(isLoadMore = false) {
-            currentView = 'tabNew';
-            const cookie = getLocalCookie();
-            if (!isLoadMore) { pagination.tabNew = { offset: 0, hasMore: true }; viewDataCache.tabNew = []; dataList.innerHTML = '<li style="justify-content:center;">正在为您调制私人电波...</li>'; }
-
+            currentView = 'tabNew'; const cookie = getLocalCookie();
+            if (!isLoadMore) { pagination.tabNew = { offset: 0, hasMore: true }; viewDataCache.tabNew = []; dataList.innerHTML = '<li style="justify-content:center;">为您调制私人电波...</li>'; }
             try {
-                if (cookie) {
-                    if (!isLoadMore) {
-                        const res = await fetch(`${API_BASE_URL}/recommend/songs?cookie=${encodeURIComponent(cookie)}&t=${Date.now()}`);
-                        const data = await res.json();
-                        if(data.code === 200) {
-                            viewDataCache.tabNew = formatSongs(data.data.dailySongs, 'recommend');
-                            displayList = viewDataCache.tabNew;
-                            renderList('为你的私人定制推荐', 'song');
-                            fillPrivateReservoir(); 
-                        }
-                    }
+                if (cookie && !isLoadMore) {
+                    const res = await fetch(`${API_BASE_URL}/recommend/songs?cookie=${encodeURIComponent(cookie)}&t=${Date.now()}`);
+                    const data = await res.json();
+                    viewDataCache.tabNew = formatSongs(data.data.dailySongs, 'recommend'); displayList = viewDataCache.tabNew; renderList('为你的私人定制推荐', 'song');
+                    fillPrivateReservoir(); 
                 } else {
-                    const limit = isLoadMore ? 10 : 20; const offset = pagination.tabNew.offset;
-                    const res = await fetch(`${API_BASE_URL}/personalized/newsong?limit=${limit}&offset=${offset}`);
+                    const res = await fetch(`${API_BASE_URL}/personalized/newsong?limit=10&offset=${pagination.tabNew.offset}`);
                     const data = await res.json();
                     const fetchedSongs = formatSongs(data.result, 'newsong');
-                    
-                    pagination.tabNew.offset += fetchedSongs.length;
-                    if (fetchedSongs.length < limit) pagination.tabNew.hasMore = false;
-
                     const newSongs = fetchedSongs.filter(song => !viewDataCache.tabNew.some(cached => cached.id === song.id));
-                    
-                    if (newSongs.length === 0) { 
-                        pagination.tabNew.hasMore = false; 
-                        renderList('今日最热新歌', 'song', true, []); 
-                        return;  
-                    }
-
-                    viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs];
-                    displayList = viewDataCache.tabNew;
-                    renderList('今日最热新歌', 'song', isLoadMore, newSongs);
+                    if (newSongs.length === 0) { pagination.tabNew.hasMore = false; renderList('今日最热新歌', 'song', true, []); return; }
+                    viewDataCache.tabNew = [...viewDataCache.tabNew, ...newSongs]; displayList = viewDataCache.tabNew; renderList('今日最热新歌', 'song', isLoadMore, newSongs);
                 }
             } catch (e) { listTitle.innerText = '加载失败'; }
         }
@@ -971,79 +971,55 @@
         async function fetchHotPlaylists(isLoadMore = false) {
             currentView = 'tabPlaylist';
             if (!isLoadMore) { pagination.tabPlaylist = { offset: 0, hasMore: true }; viewDataCache.tabPlaylist = []; dataList.innerHTML = '<li style="justify-content:center;">加载中...</li>'; }
-            const limit = isLoadMore ? 10 : 20; const offset = pagination.tabPlaylist.offset;
             try {
-                const res = await fetch(`${API_BASE_URL}/top/playlist?limit=${limit}&offset=${offset}`);
+                const res = await fetch(`${API_BASE_URL}/top/playlist?limit=15&offset=${pagination.tabPlaylist.offset}`);
                 const data = await res.json();
-                const fetchedPlaylists = (data.playlists || data.result).map(p => ({ id: p.id, name: p.name, cover: p.coverImgUrl || p.picUrl, trackCount: p.trackCount, type: 'playlist' }));
+                const fetchedPlaylists = data.playlists.map(p => ({ id: p.id, name: p.name, cover: p.coverImgUrl, type: 'playlist' }));
                 pagination.tabPlaylist.offset += fetchedPlaylists.length;
-                if (fetchedPlaylists.length < limit) pagination.tabPlaylist.hasMore = false;
-                const newPlaylists = fetchedPlaylists.filter(p => !viewDataCache.tabPlaylist.some(c => c.id === p.id));
-                viewDataCache.tabPlaylist = [...viewDataCache.tabPlaylist, ...newPlaylists];
-                displayList = viewDataCache.tabPlaylist;
-                renderList('全网热门歌单', 'playlist', isLoadMore, newPlaylists);
+                viewDataCache.tabPlaylist = [...viewDataCache.tabPlaylist, ...fetchedPlaylists]; displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist', isLoadMore, fetchedPlaylists);
             } catch (e) { listTitle.innerText = '加载失败'; }
         }
 
         async function fetchPlaylistDetail(id, name, isLoadMore = false) {
-            currentView = 'playlistDetail';
-            const cookie = getLocalCookie();
+            currentView = 'playlistDetail'; const cookie = getLocalCookie();
             if (!isLoadMore) { currentPlaylistId = id; pagination.playlistDetail = { offset: 0, hasMore: true }; viewDataCache.playlistDetail = []; dataList.innerHTML = '<li style="justify-content:center;">解析歌单中...</li>'; }
-            const limit = isLoadMore ? 10 : 20; const offset = pagination.playlistDetail.offset;
             try {
-                const res = await fetch(`${API_BASE_URL}/playlist/track/all?id=${id}&limit=${limit}&offset=${offset}${cookie ? '&cookie='+encodeURIComponent(cookie) : ''}`);
+                const res = await fetch(`${API_BASE_URL}/playlist/track/all?id=${id}&limit=20&offset=${pagination.playlistDetail.offset}${cookie ? '&cookie='+encodeURIComponent(cookie) : ''}`);
                 const data = await res.json();
                 const fetchedSongs = formatSongs(data.songs, 'playlistDetail');
                 pagination.playlistDetail.offset += fetchedSongs.length;
-                if (fetchedSongs.length < limit) pagination.playlistDetail.hasMore = false;
-                const newSongs = fetchedSongs.filter(s => !viewDataCache.playlistDetail.some(c => c.id === s.id));
-                viewDataCache.playlistDetail = [...viewDataCache.playlistDetail, ...newSongs];
-                displayList = viewDataCache.playlistDetail;
-                
-                backBtn.style.display = 'block';
-                backBtn.onclick = () => { switchTab('tabPlaylist'); displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist'); };
-                renderList(`歌单内容: ${name}`, 'song', isLoadMore, newSongs);
+                viewDataCache.playlistDetail = [...viewDataCache.playlistDetail, ...fetchedSongs]; displayList = viewDataCache.playlistDetail;
+                backBtn.style.display = 'block'; backBtn.onclick = () => { switchTab('tabPlaylist'); displayList = viewDataCache.tabPlaylist; renderList('全网热门歌单', 'playlist'); };
+                renderList(`歌单内容: ${name}`, 'song', isLoadMore, fetchedSongs);
             } catch (e) { listTitle.innerText = '歌单解析失败'; }
         }
 
         async function fetchSearch(isLoadMore = false, keyword = '') {
             currentView = 'tabSearch';
             if (!isLoadMore) { lastSearchKeyword = keyword; pagination.tabSearch = { offset: 0, hasMore: true }; viewDataCache.tabSearch = []; dataList.innerHTML = '<li style="justify-content:center;">全网探索中...</li>'; }
-            const limit = isLoadMore ? 10 : 20; const offset = pagination.tabSearch.offset;
             try {
-                const res = await fetch(`${API_BASE_URL}/cloudsearch?keywords=${lastSearchKeyword}&limit=${limit}&offset=${offset}`);
+                const res = await fetch(`${API_BASE_URL}/cloudsearch?keywords=${lastSearchKeyword}&limit=20&offset=${pagination.tabSearch.offset}`);
                 const data = await res.json();
-                let fetchedSongs = [];
-                if (data.result && data.result.songs) fetchedSongs = formatSongs(data.result.songs, 'cloudsearch');
+                let fetchedSongs = data.result && data.result.songs ? formatSongs(data.result.songs, 'cloudsearch') : [];
                 pagination.tabSearch.offset += fetchedSongs.length;
-                if (fetchedSongs.length < limit) pagination.tabSearch.hasMore = false;
-                const newSongs = fetchedSongs.filter(song => !viewDataCache.tabSearch.some(cached => cached.id === song.id));
-                viewDataCache.tabSearch = [...viewDataCache.tabSearch, ...newSongs];
-                displayList = viewDataCache.tabSearch;
-                renderList(`"${lastSearchKeyword}" 的探索结果`, 'song', isLoadMore, newSongs);
+                viewDataCache.tabSearch = [...viewDataCache.tabSearch, ...fetchedSongs]; displayList = viewDataCache.tabSearch; renderList(`"${lastSearchKeyword}" 的结果`, 'song', isLoadMore, fetchedSongs);
             } catch (e) { listTitle.innerText = '探索失败'; }
         }
 
-        document.getElementById('searchBtn').onclick = function() {
-            const keyword = searchInput.value.trim();
-            if (!keyword) { switchTab('tabSearch'); if (viewDataCache.tabSearch.length === 0) renderSearchEmptyUI(); return; }
-            switchTab('tabSearch'); fetchSearch(false, keyword);
+        document.getElementById('searchBtn').onclick = () => {
+            const kw = searchInput.value.trim();
+            if (!kw) { switchTab('tabSearch'); renderSearchEmptyUI(); return; }
+            switchTab('tabSearch'); fetchSearch(false, kw);
         };
-
-        dataList.addEventListener('scroll', () => { if (dataList.scrollHeight - dataList.scrollTop <= dataList.clientHeight + 10) loadMoreData(); });
+        dataList.onscroll = () => { if (dataList.scrollHeight - dataList.scrollTop <= dataList.clientHeight + 20) loadMoreData(); };
 
         async function loadMoreData() {
-            if (isFetching || currentView === 'tabBlindBox') return; 
-            if (displayList.length === 0) return;
-            if (pagination[currentView] && !pagination[currentView].hasMore) return;
-            isFetching = true;
-            
-            const loadingLi = document.createElement('li'); loadingLi.id = 'loadingMoreIndicator'; loadingLi.className = 'loading-more'; loadingLi.innerText = '正在加载更多...';
-            dataList.appendChild(loadingLi); dataList.scrollTop = dataList.scrollHeight;
-
+            if (isFetching || currentView === 'tabBlindBox') return; isFetching = true;
             try {
                 if (currentView === 'tabNew') {
                     if (getLocalCookie()) {
+                        const loadingLi = document.createElement('li'); loadingLi.id = 'loadingMoreIndicator'; loadingLi.className = 'loading-more'; loadingLi.innerText = '正在加载更多...';
+                        dataList.appendChild(loadingLi); dataList.scrollTop = dataList.scrollHeight;
                         if (privateReservoir.length < 20) await fillPrivateReservoir();
                         loadingLi.remove();
                         if (privateReservoir.length > 0) {
@@ -1059,79 +1035,45 @@
                 }
                 else if (currentView === 'tabPlaylist') await fetchHotPlaylists(true);
                 else if (currentView === 'tabSearch') await fetchSearch(true, lastSearchKeyword);
-                else if (currentView === 'playlistDetail') { const cleanName = listTitle.innerText.replace('歌单内容: ', ''); await fetchPlaylistDetail(currentPlaylistId, cleanName, true); }
+                else if (currentView === 'playlistDetail') await fetchPlaylistDetail(currentPlaylistId, listTitle.innerText.replace('歌单内容: ', ''), true);
             } finally { isFetching = false; }
         }
 
-        searchInput.addEventListener('input', () => { clearSearch.style.display = searchInput.value.length > 0 ? 'flex' : 'none'; });
-        clearSearch.onclick = () => { 
-            searchInput.value = ''; clearSearch.style.display = 'none'; searchInput.focus(); 
-            if(currentView === 'tabSearch') { 
-                viewDataCache.tabSearch = []; displayList = []; 
-                renderSearchEmptyUI(); 
-            } 
-        };
-        searchInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('searchBtn').click(); });
+        searchInput.oninput = () => { clearSearch.style.display = searchInput.value.length > 0 ? 'flex' : 'none'; };
+        clearSearch.onclick = () => { searchInput.value = ''; clearSearch.style.display = 'none'; if(currentView === 'tabSearch') renderSearchEmptyUI(); };
+        searchInput.onkeypress = e => { if(e.key === 'Enter') document.getElementById('searchBtn').click(); };
 
+        // 【核心前沿通信】：由于加入了进度条锁，在切歌瞬间强制干预进度条！
         async function playSong(index, resumeTime = 0, forcePlay = true) {
             if (!playingList[index]) return;
-            const song = playingList[index];
-            currentPlayingIndex = index;
-            
+            const song = playingList[index]; currentPlayingIndex = index;
             if (resumeTime === 0) {
-                addPlayHistory(song.id);
-                updatePlaylistBadge(); 
-                document.getElementById('currentSongName').innerText = song.name;
-                document.getElementById('currentArtist').innerText = song.artist;
-                document.getElementById('albumCover').src = song.cover + '?param=300y300';
-                fetchLyric(song.id);
+                addPlayHistory(song.id); updatePlaylistBadge();
+                document.getElementById('currentSongName').innerText = song.name; document.getElementById('currentArtist').innerText = song.artist;
+                document.getElementById('albumCover').src = song.cover + '?param=300y300'; fetchLyric(song.id);
                 
-                if(playlistPanel.classList.contains('show')) {
-                    updatePlaylistPanelState(); scrollToCurrentSongInPanel();
-                }
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.artist, album: 'MusicZ', artwork: [{ src: song.cover + '?param=300y300', sizes: '300x300', type: 'image/jpeg' }] });
-                }
+                // 【核心修复】：切歌的瞬间，强行锁死进度条并归零，断绝幽灵记忆
+                progressBar.max = 0;
+                progressBar.value = 0;
+                updateProgressUI();
+                currentTimeText.innerText = '00:00';
+                durationText.innerText = '00:00';
             }
-
             try {
-                const cookie = getLocalCookie();
-                const urlRes = await fetch(`${API_BASE_URL}/song/url/v1?id=${song.id}&level=${preferredQuality}${cookie ? '&cookie='+encodeURIComponent(cookie) : ''}`);
+                const urlRes = await fetch(`${API_BASE_URL}/song/url/v1?id=${song.id}&level=${preferredQuality}${getLocalCookie() ? '&cookie='+encodeURIComponent(getLocalCookie()) : ''}`);
                 const urlData = await urlRes.json();
-                
                 if (urlData.data && urlData.data[0] && urlData.data[0].url) {
-                    const audioUrl = urlData.data[0].url;
-                    const actualLevel = urlData.data[0].level || 'standard';
-                    currentActualQuality = actualLevel;
-                    
-                    if (resumeTime > 0) {
-                        if (actualLevel !== preferredQuality) {
-                            showToast(`🎵 版权受限，已为您平滑降级至【${qualityNameMap[actualLevel] || '标准'}】音质`);
-                        } else {
-                            showToast(`🎵 已无缝切换至【${qualityNameMap[actualLevel] || '标准'}】音质`);
-                        }
-                    }
-                    
-                    qualityBtn.innerText = qualityNameMap[currentActualQuality] || '标准';
+                    const actualLevel = urlData.data[0].level || 'standard'; currentActualQuality = actualLevel;
+                    if (resumeTime > 0) showToast(actualLevel !== preferredQuality ? `🎵 版权受限，已为您平滑降级至【${actualQualityDisplay(actualLevel)}】音质` : `🎵 已无缝切换至【${actualQualityDisplay(actualLevel)}】音质`);
+                    qualityBtn.innerText = actualQualityDisplay(currentActualQuality);
                     qualityBtn.className = 'quality-toggle-btn ' + (currentActualQuality === 'lossless' || currentActualQuality === 'hires' ? 'is-sq' : '');
-                    qualityBtn.title = currentActualQuality !== preferredQuality ? `设定: ${qualityNameMap[preferredQuality]} (受限已降级)` : '切换音质';
-                    
-                    audioPlayer.src = audioUrl;
-                    if (resumeTime > 0) audioPlayer.currentTime = resumeTime; 
-                    if (forcePlay) audioPlayer.play();
-                } else {
-                    if (resumeTime === 0) {
-                        showCustomAlert(`《${song.name}》无版权或需VIP，已跳过`); playNextSong(); 
-                    } else {
-                        showCustomAlert('当前音质切换失败，版权受限');
-                    }
-                }
+                    audioPlayer.src = urlData.data[0].url; if (resumeTime > 0) audioPlayer.currentTime = resumeTime; if (forcePlay) audioPlayer.play();
+                } else if (resumeTime === 0) { showCustomAlert(`《${song.name}》无版权或需VIP，已跳过`); playNextSong(); }
             } catch (e) {}
         }
 
         async function fetchLyric(songId) {
-            const lyricList = document.getElementById('lyricList');
-            lyricList.innerHTML = '<li>歌词加载中...</li>'; lyricList.style.transform = `translateY(0px)`; parsedLyrics = [];
+            const lyricList = document.getElementById('lyricList'); lyricList.innerHTML = '<li>歌词加载中...</li>'; parsedLyrics = [];
             try {
                 const res = await fetch(`${API_BASE_URL}/lyric?id=${songId}`);
                 const data = await res.json();
@@ -1141,120 +1083,128 @@
                         const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
                         if (match) {
                             const time = parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3])/(match[3].length===2?100:1000);
-                            const text = match[4].trim();
-                            if (text) { parsedLyrics.push({ time, text }); const li = document.createElement('li'); li.innerText = text; lyricList.appendChild(li); }
+                            const text = match[4].trim(); if (text) { parsedLyrics.push({ time, text }); const li = document.createElement('li'); li.innerText = text; lyricList.appendChild(li); }
                         }
                     });
                 } else { lyricList.innerHTML = '<li>纯音乐 / 暂无歌词</li>'; }
             } catch (e) { lyricList.innerHTML = '<li>歌词加载失败</li>'; }
         }
 
-        audioPlayer.addEventListener('timeupdate', () => {
+        audioPlayer.ontimeupdate = () => {
             if (parsedLyrics.length === 0) return;
             const currentTime = audioPlayer.currentTime; let activeIndex = -1;
             for (let i = 0; i < parsedLyrics.length; i++) { if (currentTime >= parsedLyrics[i].time) activeIndex = i; else break; }
             if (activeIndex !== -1) {
                 const lis = document.getElementById('lyricList').querySelectorAll('li');
-                lis.forEach(li => li.classList.remove('active'));
-                const currentLi = lis[activeIndex];
+                lis.forEach(li => li.classList.remove('active')); const currentLi = lis[activeIndex];
                 if(currentLi) {
-                    currentLi.classList.add('active');
-                    const boxHalfHeight = document.querySelector('.lyric-box').offsetHeight / 2;
-                    const liCenter = currentLi.offsetTop + (currentLi.offsetHeight / 2);
-                    let offset = liCenter - boxHalfHeight; if (offset < 0) offset = 0;
-                    document.getElementById('lyricList').style.transform = `translateY(-${offset}px)`;
+                    currentLi.classList.add('active'); const boxHalf = 130; 
+                    document.getElementById('lyricList').style.transform = `translateY(-${currentLi.offsetTop - boxHalf}px)`;
                 }
             }
-        });
-
-        const PLAY_MODES = ['loop', 'single', 'random']; let modeIdx = 0;
-        document.getElementById('modeBtn').onclick = function() { modeIdx = (modeIdx + 1) % PLAY_MODES.length; this.innerText = ['🔁 列表循环', '🔂 单曲循环', '🔀 随机播放'][modeIdx]; };
+            if (!isDraggingProgress && progressBar.max > 0) { progressBar.value = audioPlayer.currentTime; currentTimeText.innerText = formatTime(audioPlayer.currentTime); updateProgressUI(); }
+        };
 
         function playNextSong() {
             if (playingList.length === 0) return;
-            let nextIndex = (currentPlayingIndex + 1) % playingList.length;
-            if (PLAY_MODES[modeIdx] === 'random') nextIndex = Math.floor(Math.random() * playingList.length);
-            playSong(nextIndex);
+            let next = (currentPlayingIndex + 1) % playingList.length;
+            if (PLAY_MODES[modeIdx] === 'random') next = Math.floor(Math.random() * playingList.length);
+            playSong(next);
         }
-
         function playPrevSong() {
             if (playingList.length === 0) return;
-            let prevIndex = currentPlayingIndex - 1;
-            if (PLAY_MODES[modeIdx] === 'random') prevIndex = Math.floor(Math.random() * playingList.length); else if (prevIndex < 0) prevIndex = playingList.length - 1;
-            playSong(prevIndex);
+            let prev = currentPlayingIndex - 1; if (prev < 0) prev = playingList.length - 1;
+            if (PLAY_MODES[modeIdx] === 'random') prev = Math.floor(Math.random() * playingList.length);
+            playSong(prev);
         }
+        nextBtn.onclick = playNextSong; prevBtn.onclick = playPrevSong; audioPlayer.onended = () => { if (PLAY_MODES[modeIdx] === 'single') audioPlayer.play(); else playNextSong(); };
         
-        nextBtn.onclick = playNextSong; prevBtn.onclick = playPrevSong; audioPlayer.onended = playNextSong;
-        
-        playPauseBtn.onclick = () => {
-            if (playingList.length === 0) { showCustomAlert('当前播放列表为空，快去探索一些音乐吧~'); return; }
-            if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
+        playPauseBtn.onclick = () => { 
+            if (playingList.length === 0) { 
+                showCustomAlert('当前播放列表为空，快去探索一些音乐吧~'); 
+                return; 
+            } 
+            if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); 
         };
 
         function updateProgressUI() {
-            let percentage = 0; if (progressBar.max > 0) percentage = (progressBar.value / progressBar.max) * 100;
+            let percentage = 0;
+            if (progressBar.max > 0) percentage = (progressBar.value / progressBar.max) * 100;
             progressBar.style.setProperty('--progress', `${percentage}%`);
         }
-
-        let isDraggingProgress = false;
-        audioPlayer.addEventListener('loadedmetadata', () => { progressBar.max = audioPlayer.duration; durationText.innerText = formatTime(audioPlayer.duration); });
-        audioPlayer.addEventListener('timeupdate', () => { if (!isDraggingProgress) { progressBar.value = audioPlayer.currentTime; currentTimeText.innerText = formatTime(audioPlayer.currentTime); updateProgressUI(); } });
-        progressBar.addEventListener('mousedown', () => isDraggingProgress = true);
-        progressBar.addEventListener('input', () => { currentTimeText.innerText = formatTime(progressBar.value); updateProgressUI(); });
-        progressBar.addEventListener('mouseup', () => { isDraggingProgress = false; audioPlayer.currentTime = progressBar.value; });
-
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('previoustrack', playPrevSong); navigator.mediaSession.setActionHandler('nexttrack', playNextSong);
-            navigator.mediaSession.setActionHandler('play', () => audioPlayer.play()); navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName.toLowerCase() === 'input') return;
-            switch(e.code) {
-                case 'Space': e.preventDefault(); if (playingList.length === 0) { showCustomAlert('列表为空~'); break; } if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause(); break;
-                case 'ArrowLeft': e.preventDefault(); playPrevSong(); break;
-                case 'ArrowRight': e.preventDefault(); playNextSong(); break;
-            }
-        });
-
-        audioPlayer.addEventListener('play', () => {
-            playPauseBtn.innerHTML = ICON_PAUSE_LARGE; playPauseBtn.classList.add('is-paused'); 
-            
-            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {} 
-            else if (currentView === 'tabBlindBox') { 
-                const icon = document.querySelector('.blind-box-icon');
-                if (icon && icon.innerText === '🎧') icon.classList.add('icon-playing');
-            } 
-            else {
-                updateListPlayState();
-            }
-            updatePlaylistPanelState();
-        });
         
-        audioPlayer.addEventListener('pause', () => {
-            playPauseBtn.innerHTML = ICON_PLAY_LARGE; playPauseBtn.classList.remove('is-paused'); 
-            
-            if (currentView === 'tabSearch' && viewDataCache.tabSearch.length === 0) {} 
-            else if (currentView === 'tabBlindBox') { 
+        let isDraggingProgress = false;
+        
+        // 【核心修复】：真正的锁解开了！获取到音乐真身时再解锁
+        audioPlayer.onloadedmetadata = () => { 
+            if (!isNaN(audioPlayer.duration) && isFinite(audioPlayer.duration)) {
+                progressBar.max = audioPlayer.duration; 
+                durationText.innerText = formatTime(audioPlayer.duration); 
+            } else {
+                progressBar.max = 0;
+                durationText.innerText = "00:00";
+            }
+        };
+        
+        // 【双重防呆验证】：不仅加了 HTML 的 max="0"，在 JS 事件里也做了最后一道防线
+        progressBar.onmousedown = (e) => { 
+            if (currentPlayingIndex === -1 || progressBar.max == 0) { e.preventDefault(); return; }
+            isDraggingProgress = true; 
+        };
+        progressBar.oninput = () => { 
+            if (currentPlayingIndex === -1 || progressBar.max == 0) return;
+            currentTimeText.innerText = formatTime(progressBar.value); 
+            updateProgressUI(); 
+        };
+        progressBar.onmouseup = () => { 
+            if (currentPlayingIndex === -1 || progressBar.max == 0) return;
+            isDraggingProgress = false; 
+            audioPlayer.currentTime = progressBar.value; 
+        };
+
+        document.onkeydown = e => {
+            if (e.target.tagName === 'INPUT') return;
+            if (e.code === 'Space') { e.preventDefault(); playPauseBtn.click(); }
+            if (e.code === 'ArrowLeft') playPrevSong(); if (e.code === 'ArrowRight') playNextSong();
+        };
+
+        audioPlayer.onplay = () => { 
+            playPauseBtn.innerHTML = ICON_PAUSE_LARGE; 
+            if(currentView === 'tabBlindBox') {
                 const icon = document.querySelector('.blind-box-icon');
-                if (icon) icon.classList.remove('icon-playing');
-            } 
-            else {
+                if(icon && icon.innerText === '🎧') icon.classList.add('icon-playing');
+            } else {
                 updateListPlayState();
             }
             updatePlaylistPanelState();
-        });
+        };
+        
+        audioPlayer.onpause = () => { 
+            playPauseBtn.innerHTML = ICON_PLAY_LARGE; 
+            if(currentView === 'tabBlindBox') {
+                const icon = document.querySelector('.blind-box-icon');
+                if(icon) icon.classList.remove('icon-playing');
+            } else {
+                updateListPlayState();
+            }
+            updatePlaylistPanelState();
+        };
 
-        clearPlaylistBtn.onclick = () => {
+        clearPlaylistBtn.onclick = () => { 
             playingList = []; currentPlayingIndex = -1; 
             audioPlayer.pause(); audioPlayer.src = ''; 
             playPauseBtn.innerHTML = ICON_PLAY_LARGE; playPauseBtn.classList.remove('is-paused');
             document.getElementById('currentSongName').innerText = 'MusicZ'; document.getElementById('currentArtist').innerText = '听你想听'; document.getElementById('albumCover').src = 'https://s1.music.126.net/style/web2/img/default/default_album.jpg';
             document.getElementById('lyricList').innerHTML = '<li>欢迎使用MusicZ</li>'; parsedLyrics = []; document.getElementById('lyricList').style.transform = `translateY(0px)`;
-            progressBar.value = 0; updateProgressUI(); currentTimeText.innerText = '00:00'; durationText.innerText = '00:00';
+            
+            // 【核心防线】：清空列表时，彻底锁死进度条
+            progressBar.max = 0; 
+            progressBar.value = 0; 
+            updateProgressUI(); 
+            currentTimeText.innerText = '00:00'; 
+            durationText.innerText = '00:00';
             
             isBlindBoxMode = false; currentBlindBoxTag = ''; 
-            
             currentActualQuality = preferredQuality;
             qualityBtn.innerText = qualityNameMap[currentActualQuality];
             qualityBtn.className = 'quality-toggle-btn ' + (currentActualQuality === 'lossless' || currentActualQuality === 'hires' ? 'is-sq' : '');
@@ -1267,10 +1217,7 @@
             else renderList(listTitle.innerText, 'song'); 
         };
 
-        window.onload = async () => {
-            await syncLoginStatus(); 
-            fetchNewSongs();         
-        };
+        window.onload = async () => { await syncLoginStatus(); fetchNewSongs(); };
     </script>
 </body>
 </html>
