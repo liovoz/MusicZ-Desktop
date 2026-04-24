@@ -1,82 +1,97 @@
-const { app, BrowserWindow, dialog, ipcMain } = require('electron');
-const fs = require('fs');
-const os = require('os');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
-const { autoUpdater } = require('electron-updater'); 
+const { autoUpdater } = require('electron-updater');
 
-try {
-    const tokenPath = path.join(os.tmpdir(), 'anonymous_token');
-    if (!fs.existsSync(tokenPath)) {
-        fs.writeFileSync(tokenPath, '', 'utf-8');
-    }
-} catch (e) {
-    console.error('预创建 token 文件失败:', e);
-}
-
-const { serveNcmApi } = require('NeteaseCloudMusicApi/server');
+app.commandLine.appendSwitch('proxy-bypass-list', '127.0.0.1,localhost,<local>');
 
 let mainWindow;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 1020, 
+        width: 1050,
         height: 720,
-        autoHideMenuBar: true,
+        minWidth: 850,
+        minHeight: 600,
+        autoHideMenuBar: true, 
         icon: path.join(__dirname, 'icon.ico'),
         webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js') 
+            webSecurity: false 
         }
     });
+
     mainWindow.loadFile('index.html');
 }
 
-app.whenReady().then(async () => {
+function startApiServer() {
     try {
-        await serveNcmApi({ port: 3000, checkVersion: false });
-        console.log('网易云 API 启动成功！');
-        createWindow();
-
-        if (app.isPackaged) {
-            setTimeout(() => { autoUpdater.checkForUpdatesAndNotify(); }, 3000);
-        }
-    } catch (error) {
-        dialog.showErrorBox('API 启动惨遭失败', '具体原因: ' + error.message);
+        const server = require('NeteaseCloudMusicApi/server');
+        server.serveNcmApi({ port: 3000, checkVersion: false }).then(() => {
+            console.log('网易云 API 本地引擎已激活 (端口: 3000)');
+        }).catch(err => {
+            console.error('API 引擎启动异常:', err);
+        });
+    } catch (e) {
+        console.error('未找到 NeteaseCloudMusicApi 核心模块:', e);
     }
-});
-
-if (app.isPackaged || true) { // 此处临时改为 true，方便在开发模式下也能分发事件给前端进行 UI 测试
-    ipcMain.on('check-for-updates', () => { 
-        if (app.isPackaged) {
-            autoUpdater.checkForUpdates(); 
-        } else {
-            // 【核心重构】：本地开发模式模拟返回，防止前端按钮点击后死寂
-            setTimeout(() => {
-                if(mainWindow) mainWindow.webContents.send('update-not-available', { version: 'Dev-Mode' });
-            }, 1500);
-        }
-    });
-    
-    ipcMain.on('quit-and-install', () => { autoUpdater.quitAndInstall(); });
-
-    autoUpdater.on('checking-for-update', () => {
-        if(mainWindow) mainWindow.webContents.send('update-checking');
-    });
-    autoUpdater.on('update-available', (info) => {
-        if(mainWindow) mainWindow.webContents.send('update-available', info);
-    });
-    autoUpdater.on('update-not-available', (info) => {
-        if(mainWindow) mainWindow.webContents.send('update-not-available', info);
-    });
-    autoUpdater.on('error', (err) => {
-        if(mainWindow) mainWindow.webContents.send('update-error', err == null ? "网络连接异常" : err.message);
-    });
-    autoUpdater.on('update-downloaded', (info) => {
-        if(mainWindow) mainWindow.webContents.send('update-downloaded', info);
-    });
 }
 
-app.on('window-all-closed', () => {
+app.whenReady().then(async () => {
+    startApiServer();
+
+    await session.defaultSession.setProxy({ mode: 'system' });
+    autoUpdater.netSession = session.defaultSession;
+
+    createWindow();
+
+    app.on('activate', function () {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});
+
+app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit();
+});
+
+// ==========================================
+// 💥 自动更新终极逻辑 (手动授权模式)
+// ==========================================
+// 彻底关闭自动下载，剥夺独裁权
+autoUpdater.autoDownload = false; 
+
+ipcMain.on('check-for-updates', () => {
+    autoUpdater.checkForUpdates().catch(err => {
+        if (mainWindow) mainWindow.webContents.send('update-error', err.message);
+    });
+});
+
+// 监听前端发来的“允许下载”指令
+ipcMain.on('download-update', () => {
+    autoUpdater.downloadUpdate().catch(err => {
+        if (mainWindow) mainWindow.webContents.send('update-error', err.message);
+    });
+});
+
+ipcMain.on('quit-and-install', () => {
+    autoUpdater.quitAndInstall();
+});
+
+// 状态转发
+autoUpdater.on('update-available', (info) => {
+    if (mainWindow) mainWindow.webContents.send('update-available', info);
+});
+autoUpdater.on('update-not-available', (info) => {
+    if (mainWindow) mainWindow.webContents.send('update-not-available', info);
+});
+autoUpdater.on('error', (err) => {
+    if (mainWindow) mainWindow.webContents.send('update-error', err.message);
+});
+// 进度转发
+autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow) mainWindow.webContents.send('download-progress', progressObj);
+});
+autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) mainWindow.webContents.send('update-downloaded', info);
 });

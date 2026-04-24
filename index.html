@@ -2,16 +2,49 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MusicZ 专属播放器 1.7.0</title>
+    <title>MusicZ 专属播放器 1.8.0</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="player-container" id="playerContainer">
+        
         <div id="toastNotification" class="toast-notification"></div>
         <div id="customAlert" class="custom-alert-overlay"><div class="custom-alert-box"><div class="custom-alert-icon">✨</div><div id="customAlertMessage" class="custom-alert-message"></div><button id="customAlertBtn" class="custom-alert-btn">我知道了</button></div></div>
         <div id="customConfirm" class="custom-alert-overlay"><div class="custom-alert-box"><div class="custom-alert-icon">👋</div><div id="customConfirmMessage" class="custom-alert-message"></div><div style="display: flex; gap: 15px; justify-content: center;"><button id="confirmCancelBtn" class="custom-alert-btn secondary">取消</button><button id="confirmOkBtn" class="custom-alert-btn">确认</button></div></div></div>
-        <div id="updateModal" class="custom-alert-overlay"><div class="custom-alert-box"><div class="custom-alert-icon">🚀</div><div style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px;">发现新声音</div><div id="updateModalMessage" class="custom-alert-message"></div><div style="display: flex; gap: 15px; justify-content: center;"><button id="updateCancelBtn" class="custom-alert-btn secondary">稍后再说</button><button id="updateOkBtn" class="custom-alert-btn">立即重启并升华</button></div></div></div>
+        
         <div id="loginModal" class="login-modal"><div class="login-card"><span id="closeLogin" class="close-login">✕</span><h3 style="margin-top:0; color:#333;">扫码登录</h3><p style="font-size:12px; color:#888;">请使用网易云音乐 APP 扫码</p><div class="qr-container"><img id="qrImg" class="qr-img" src=""><div id="qrStatusMask" class="qr-status-mask"><span id="qrStatusText"></span><button id="refreshQr" class="custom-alert-btn mini">重新获取</button></div></div></div></div>
+
+        <div id="aboutModal" class="custom-alert-overlay">
+            <div class="custom-alert-box about-box">
+                <span id="closeAbout" class="close-login">✕</span>
+                <div class="about-header">
+                    <div class="about-logo-wrapper">
+                        <img src="icon.ico" alt="MusicZ Logo" class="about-logo-img">
+                    </div>
+                    <div class="about-title">MusicZ</div>
+                    <div class="about-version">Version 1.8.0</div>
+                    <div class="about-slogan">听你想听，探索未知</div>
+                    <div class="about-desc">一款极简、纯粹的桌面沉浸式音乐播放器。致力于为你屏蔽一切喧嚣，只留下纯粹的音乐电波。</div>
+                </div>
+                
+                <div id="updateNotesArea" class="update-notes-area">
+                    <div class="update-notes-title">✨ 发现新世代：<span id="newVersionTag"></span></div>
+                    <div class="update-notes-content" id="updateNotesContent">准备好迎接全新的探索体验。</div>
+                </div>
+
+                <div id="updateProgressArea" class="update-progress-area">
+                    <div class="update-progress-info">
+                        <span id="updateProgressText">正在接收数据：0%</span>
+                        <span id="updateSpeedText">0 KB/s</span>
+                    </div>
+                    <div class="update-progress-bar-bg">
+                        <div class="update-progress-bar-fill" id="updateProgressBarFill"></div>
+                    </div>
+                </div>
+
+                <div class="about-actions" id="aboutActions"></div>
+            </div>
+        </div>
 
         <div class="main-content">
             <div class="left-panel">
@@ -23,7 +56,7 @@
                 <div id="currentSongName" class="current-title">MusicZ</div>
                 <div id="currentArtist" class="current-artist">听你想听</div>
                 <div class="lyric-box"><ul class="lyric-list" id="lyricList"><li>欢迎使用MusicZ</li></ul></div>
-                <div id="versionTag" class="version-tag">MusicZ v1.7.0</div>
+                <div id="versionTag" class="version-tag">MusicZ v1.8.0</div>
             </div>
 
             <div class="right-panel">

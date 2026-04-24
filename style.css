@@ -123,11 +123,8 @@ body {
 .ctrl-btn:hover { color: #ec4141; background-color: #f9f9f9; transform: scale(1.05); }
 .ctrl-btn:active { transform: scale(0.95); }
 
-/* 【核心修复】：播放与暂停图标的终极光学居中校准 */
 .play-pause-btn { color: white; background-color: #ec4141; box-shadow: 0 4px 15px rgba(236, 65, 65, 0.4); width: 48px; height: 48px; }
-/* 播放状态（三角形），原生偏右，需要向左拉回 1.5px 补偿 */
 .play-pause-btn svg { transform: translateX(-1.5px); transition: transform 0.2s ease; } 
-/* 暂停状态（双竖线），绝对对称，通过 is-playing 类名重置偏移量到 0 */
 .play-pause-btn.is-playing svg { transform: translateX(0); } 
 .play-pause-btn:hover { background-color: #d73a3a; color: white; transform: scale(1.08); box-shadow: 0 6px 20px rgba(236, 65, 65, 0.5); }
 
@@ -206,7 +203,7 @@ input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
 }
 .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ====== 自定义毛玻璃弹窗体系 (全局 Alert / Confirm / 更新窗) ====== */
+/* ====== 自定义毛玻璃弹窗体系 ====== */
 .custom-alert-overlay { 
     position: absolute; inset: 0; background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); 
     display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; 
@@ -250,6 +247,31 @@ input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
 .close-login { position: absolute; top: 15px; right: 15px; cursor: pointer; color: #ccc; font-size: 18px; }
 .close-login:hover { color: #ec4141; }
 .custom-alert-btn.mini { margin-top: 15px; padding: 6px 20px; font-size: 12px; }
+
+/* ====== 全局更新控制舱 (About Modal) UI ====== */
+.about-box { width: 340px; padding: 35px 30px; }
+.about-header { display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 20px; margin-bottom: 20px; }
+
+/* 【核心修复】: 去掉了背景色，让插入的真实图标无缝融入 */
+.about-logo-wrapper { width: 64px; height: 64px; background: transparent; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+.about-logo-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); border-radius: 16px; }
+
+.about-title { font-size: 22px; font-weight: 800; color: #333; letter-spacing: 1px; }
+.about-version { font-size: 12px; font-family: monospace; color: #888; margin-top: 5px; margin-bottom: 15px; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
+.about-slogan { font-size: 14px; font-weight: bold; color: #ec4141; margin-bottom: 8px; }
+.about-desc { font-size: 12px; color: #777; line-height: 1.6; text-align: center; }
+
+.update-notes-area { display: none; text-align: left; background: rgba(236, 65, 65, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(236, 65, 65, 0.1); margin-bottom: 20px; }
+.update-notes-title { font-size: 13px; font-weight: bold; color: #ec4141; margin-bottom: 5px; }
+.update-notes-content { font-size: 12px; color: #555; line-height: 1.5; }
+
+.update-progress-area { display: none; margin-bottom: 20px; }
+.update-progress-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 8px; font-weight: bold; }
+.update-progress-bar-bg { width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+.update-progress-bar-fill { height: 100%; width: 0%; background: #ec4141; border-radius: 3px; transition: width 0.3s ease; }
+
+.about-actions { display: flex; gap: 15px; justify-content: center; }
+.w-full { flex: 1; padding: 12px 0; border-radius: 12px; }
 
 /* 动画特效 */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

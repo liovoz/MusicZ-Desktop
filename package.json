@@ -1,7 +1,7 @@
 {
   "name": "musicz",
-  "version": "1.7.0",
-  "description": "MusicZ - 旗舰版 (工程架构重组版：实现 HTML/CSS/JS 彻底解耦)",
+  "version": "1.8.0",
+  "description": "MusicZ - 旗舰版 (引入独立 About 控制舱与完全体 OTA 状态机)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
